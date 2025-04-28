@@ -1,0 +1,21 @@
+from marshmallow import fields, validate, post_load
+from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, auto_field
+from modelos.rol_model import Rol
+from schemas.user_schema import UserSchema
+
+
+class RolSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = Rol
+        load_instance = True
+        include_relationships = True
+
+        id_rol = fields.String(dump_only=True)
+        descripcion = fields.String(required=True, validate=validate.Length(min=10, max=120))
+        usuarios    = fields.Nested(UserSchema, many=True, dump_only=True, exclude=('rol',))
+
+        @post_load
+        def make_role(self, data, **kwargs):
+            return Rol(**data)
+
+
