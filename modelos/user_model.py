@@ -5,6 +5,7 @@ import uuid
 
 class Usuario(db.Model):
     __tablename__ = 'usuarios'
+    
     id_usuario = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     nombre = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(50), unique=True, nullable=False)

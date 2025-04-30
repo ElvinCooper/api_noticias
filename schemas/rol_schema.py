@@ -1,5 +1,5 @@
 from marshmallow import fields, validate, post_load
-from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, auto_field
+from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from modelos.rol_model import Rol
 from schemas.user_schema import UserSchema
 
@@ -16,6 +16,6 @@ class RolSchema(SQLAlchemyAutoSchema):
 
         @post_load
         def make_role(self, data, **kwargs):
-            return Rol(**data)
+            return Rol(id_rol=data)
 
 
