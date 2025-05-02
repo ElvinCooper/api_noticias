@@ -17,7 +17,7 @@ class Post(db.Model):
     autor       = db.relationship('Usuario', back_populates='posts')
     pais        = db.relationship('Pais', back_populates='posts')   # Relacion con el modelo Pais(posts)
     categorias  = db.relationship('Categoria', secondary='posts_categorias', back_populates='posts') 
-    id_multimedia  = db.relationship('Multimedia', back_populates='post')
+    multimedia  = db.relationship('Multimedia', back_populates='post')
     favoritos   = db.relationship('Favorito', back_populates='post')
     status     =  db.Column(db.Boolean, default=True)
 
