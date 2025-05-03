@@ -10,4 +10,5 @@ class Pais(db.Model):
     nombre_pais = db.Column(db.String(50), nullable=False)
     abrebiatura_pais = db.Column(db.String(3), unique=True, nullable=False)
     id_multimedia    = db.Column(db.String, db.ForeignKey('multimedia.id_multimedia'), nullable=True) # clave foranea
-    multimedia       = db.relationship('Multimedia', back_populates='pais') # relacion uno a uno
+    multimedia       = db.relationship('Multimedia', back_populates='pais', lazy=True) # relacion uno a uno
+    posts            = db.relationship('Post', back_populates='pais', lazy=True)   # Relacion con el modelo Pais

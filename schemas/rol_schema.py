@@ -12,7 +12,7 @@ class RolSchema(SQLAlchemyAutoSchema):
 
         id_rol = fields.String(dump_only=True)
         descripcion = fields.String(required=True, validate=validate.Length(min=10, max=120))
-        usuarios    = fields.Nested(UserSchema, many=True, dump_only=True, exclude=('rol',))
+        usuarios    = fields.Nested(UserSchema, many=True, exclude=('rol',),dump_only=True)
 
         @post_load
         def make_role(self, data, **kwargs):

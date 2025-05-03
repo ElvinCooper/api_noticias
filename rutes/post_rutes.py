@@ -30,7 +30,7 @@ def get_posts():
 
 
 #------------------------ Enpoint consultar un post con su id ----------------------#
-@post_bp.route('/<String:id_post>', methods=['GET'])
+@post_bp.route('/<string:id_post>', methods=['GET'])
 def get_post(id_post):
     '''
     docstring

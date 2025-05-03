@@ -6,6 +6,10 @@ from dotenv import load_dotenv
 import os
 from flasgger import Swagger
 from config import TestingConfig, ProductionConfig, DevelopmentConfig
+from rutes.user_rutes import usuario_bp
+from rutes.post_rutes import post_bp
+from rutes.favorito_rutes import favorito_bp
+
 
 
 
@@ -14,8 +18,6 @@ def create_app(testing=True):
     app = Flask(__name__)
     load_dotenv()
 
-    # detectar el entorno desde .FLASKENV
-    env = os.getenv("FLASK_ENV", "development")
 
     # detectar el entorno desde .FLASKENV
     env = os.getenv("FLASK_ENV", "development")
@@ -48,6 +50,16 @@ def create_app(testing=True):
     migrate = Migrate(app, db)
 
 
+     # Importacion de los modelos para evitar problemas de mapping
+    from modelos.user_model import Usuario
+    from modelos.rol_model import Rol
+    from modelos.post_model import Post
+    from modelos.favorito_model import Favorito
+    from modelos.pais_model import Pais
+    from modelos.multimedia_model import Multimedia
+    from modelos.post_categoria_model import PostCategoria
+    from modelos.categoria_model import Categoria
+
     # Swagger
     swagger_template = {
         "swagger": "2.0",
@@ -70,12 +82,19 @@ def create_app(testing=True):
 
 
     # Blueprints     (en esta parte es donde agrego las rutas de los Endpoints)
-
+    app.register_blueprint(usuario_bp,  url_prfix='/api')
+    app.register_blueprint(post_bp,     url_prfix='/api')
+    app.register_blueprint(favorito_bp, url_prfix='/api')
 
 
     return app
 
 app = create_app()
+
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
 
 
 

@@ -1,9 +1,9 @@
 from marshmallow import fields, validate
-from marshmallow_sqlalchemy import SQLAlchemyAutoshchema, auto_field
+from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, auto_field
 from modelos.user_model import Usuario
 
 
-class UserSchema(SQLAlchemyAutoshchema):
+class UserSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Usuario
         load_instance = True
@@ -15,6 +15,6 @@ class UserSchema(SQLAlchemyAutoshchema):
     password       = auto_field(required=True, validate=validate.Length(min=8, max=25))
     id_rol         = fields.String(dump_only=True)
     fecha_registro = fields.Date(dump_only=True)
-    rol            = fields.Nested('Rolschema', exclude=('usuarios',))  # OBjeto Rol relacionado.
-    post           = fields.List(fields.Nested('Postschema', exclude=('usuario,'))) # lista de post relacionados
-    favoritos      = fields.List(fields.Nested('Favoritoschema', exclude=('usuario')))
+    rol            = fields.Nested('RolSchema', exclude=('usuarios',), dump_only=True)  # OBjeto Rol relacionado.
+    post           = fields.Nested('PostSchema', many=True, dump_only=True)  # Lista de post relacionados
+    favoritos      = fields.List(fields.Nested('FavoritoSchema', exclude=('usuario',))) # Lista de favoritos relacionados

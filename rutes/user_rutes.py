@@ -28,7 +28,7 @@ def get_usuarios():
 
 
 # --------------------------------- Consultar un usuario por su id ---------------------------------#
-@usuario_bp.route('/<String:id_usuario>', methods=['GET'])
+@usuario_bp.route('/<string:id_usuario>', methods=['GET'])
 def get_usuario(id_usuario):
     usuario = Usuario.query.get_or_404(id_usuario)
     return jsonify(usuario_schema.dumps(usuario)), HTTPStatus.OK
