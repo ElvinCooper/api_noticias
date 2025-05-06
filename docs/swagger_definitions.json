@@ -1,0 +1,55 @@
+{
+  "definitions": {
+    "Usuario": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer" },
+        "nombre": { "type": "string" },
+        "email": { "type": "string" },
+        "id_rol": { "type": "integer" }
+      }
+    },
+    "RegistroUsuario": {
+      "type": "object",
+      "properties": {"nombre": 
+      { "type": "string" },
+        "email": { "type": "string" },
+        "password": { "type": "string" },
+        "id_rol": { "type": "integer" }
+      },
+      "required": ["nombre", "email", "password", "id_rol"]
+    },
+    "LoginUsuario": {
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "password": { "type": "string" }
+      }
+    },  
+    "Post": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer" },
+        "titulo": { "type": "string" },
+        "contenido": { "type": "string" },
+        "id_pais": { "type": "integer" },
+        "visible": { "type": "boolean" },
+        "status": { "type": "boolean" },
+        "id_usuario": { "type": "integer" }
+      },
+      "required": ["titulo", "contenido", "id_pais", "id_usuario"]
+    },
+
+    "Favorito": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer"},
+        "id_usuario": {
+          "type": "integer"},
+        "id_post": {
+          "type": "integer"}
+      }
+    }
+  }  
+}

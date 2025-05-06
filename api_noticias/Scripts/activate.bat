@@ -8,7 +8,7 @@ if defined _OLD_CODEPAGE (
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
-set VIRTUAL_ENV=C:\Users\ecooper\Documents\flask_projects\api_noticias\api_noticias
+set VIRTUAL_ENV=C:\Users\jeffry wood\documents\flask_projects\proyecto_api_noticias\api_noticias\api_noticias
 
 if not defined PROMPT set PROMPT=$P$G
 

@@ -1,6 +1,7 @@
 from marshmallow import fields, validate, post_load
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from modelos.pais_model import Pais
+from schemas.multimedia_schema import MultimediaSchema
 
 
 

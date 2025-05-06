@@ -9,11 +9,24 @@ favorito_bp = Blueprint('favoritos', __name__)
 
 
 
+# ------------------- Endpoint para ver todos los post favoritos --------------------------#
 @favorito_bp.route('/', methods=['GET'])
 @jwt_required()
 def obtener_favoritos_usuario():
     """
-    Devuelve todos los posts marcados como favoritos por el usuario autenticado
+    Obtener posts favoritos del usuario autenticado
+    ---
+    tags:
+      - Favoritos
+    security:
+      - BearerAuth: []
+    responses:
+      200:
+        description: Lista de posts favoritos
+        schema:
+          type: array
+          items:
+            $ref: '#/definitions/Post'
     """
     id_usuario = get_jwt_identity()
     favoritos = Favorito.query.filter_by(id_usuario=id_usuario).all()
@@ -27,12 +40,28 @@ def obtener_favoritos_usuario():
 
 
 
-# ------------------- Endpoint para ver favoritos de otro usuario --------------------------#
+# ------------------- Endpoint para ver favoritos de otro usuario por si ID --------------------------#
 
 @favorito_bp.route('/usuario/<string:id_usuario>', methods=['GET'])
 def favoritos_por_usuario(id_usuario):
     """
-    Ver favoritos de un usuario específico (público o autenticado)
+    Obtener favoritos de un usuario por su ID
+    ---
+    tags:
+      - Favoritos
+    parameters:
+      - name: id_usuario
+        in: path
+        required: true
+        type: string
+        description: ID del usuario
+    responses:
+      200:
+        description: Lista de posts favoritos del usuario
+        schema:
+          type: array
+          items:
+            $ref: '#/definitions/Post'
     """
     favoritos = Favorito.query.filter_by(id_usuario=id_usuario).all()
     posts = [fav.post for fav in favoritos]
@@ -51,7 +80,35 @@ def favoritos_por_usuario(id_usuario):
 @jwt_required()
 def crear_favorito():
     """
-    Marcar un post como favorito para el usuario autenticado
+    Marcar un post como favorito
+    ---
+    tags:
+      - Favoritos
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          required:
+            - id_post
+          properties:
+            id_post:
+              type: integer
+              description: ID del post a marcar como favorito
+    responses:
+      201:
+        description: Post agregado a favoritos exitosamente
+        schema:
+          $ref: '#/definitions/Post'
+      400:
+        description: Falta el campo 'id_post'
+      404:
+        description: Post no encontrado
+      409:
+        description: Post ya está en favoritos
     """
     json_data = request.get_json()
     id_post = json_data.get('id_post')
@@ -90,7 +147,25 @@ def crear_favorito():
 @jwt_required()
 def eliminar_favorito(id_post):
     """
-    Elimina un post de los favoritos del usuario autenticado
+    Eliminar un post de los favoritos del usuario
+    ---
+    tags:
+      - Favoritos
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: id_post
+        in: path
+        required: true
+        type: string
+        description: ID del post a eliminar de favoritos
+        schema:
+          $ref: '#/definitions/Favorito'
+    responses:
+      200:
+        description: Post eliminado de favoritos
+      404:
+        description: El post no estaba en tus favoritos
     """
     id_usuario = get_jwt_identity()
     

@@ -13,8 +13,8 @@ class MultimediaSchema(SQLAlchemyAutoSchema):
     nombre_archivo = fields.Str(allow_none=True, validate=validate.Length(50))
     tipo_entidad   = fields.Str(allow_none=True, validate=validate.Length(20))
     tipo_archivo   = fields.Str(required=True,   validate=validate.Length(20))
-    categoria = fields.Nested('CategoriaSchema', exclude=('multimedia',), dump_only=True)
-    pais      = fields.Nested('PaisSchema',      exclude=('multimedia',), dump_only=True)
+    categoria = fields.Nested("CategoriaSchema", exclude=('multimedia',), dump_only=True)
+    pais      = fields.Nested("PaisSchema",      exclude=('multimedia',), dump_only=True)
     
     
     

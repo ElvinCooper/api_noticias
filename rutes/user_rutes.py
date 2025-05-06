@@ -18,18 +18,51 @@ usuarios_schema = UserSchema(many=True)
 
 
 # ----------------------------  Consultar todos los usuarios  --------------------------------#
-@usuario_bp.route('/', methods=['GET'])
+@usuario_bp.route('/users', methods=['GET'])
 def get_usuarios():
-    '''
-    En este endpoint se visualizan todos los usuarios en la db
-    '''
+    """
+    Obtener todos los usuarios
+
+    Este endpoint retorna la lista de todos los usuarios registrados en el sistema.
+    ---
+    tags:
+      - Usuarios
+    responses:
+      200:
+        description: Lista de usuarios
+        schema:
+           $ref: '#/definitions/Usuario'
+    """
     usuarios = Usuario.query.all()
     return jsonify(usuarios_schema.dumps(usuarios)), HTTPStatus.OK
 
 
+
 # --------------------------------- Consultar un usuario por su id ---------------------------------#
 @usuario_bp.route('/<string:id_usuario>', methods=['GET'])
+@jwt_required()
 def get_usuario(id_usuario):
+    """
+        Obtener usuario por ID
+
+        Retorna los datos de un usuario específico usando su ID.
+        ---
+        tags:
+          - Usuarios
+        parameters:
+          - name: id_usuario
+            in: path
+            type: string
+            required: true
+            description: ID del usuario a consultar
+        responses:
+          200:
+            description: Usuario encontrado
+            schema:
+              $ref: '#/definitions/Usuario'
+          404:
+            description: Usuario no encontrado
+        """    
     usuario = Usuario.query.get_or_404(id_usuario)
     return jsonify(usuario_schema.dumps(usuario)), HTTPStatus.OK
 
@@ -38,13 +71,27 @@ def get_usuario(id_usuario):
 # ---------------------------  Endpoint para Registrar usuarios -----------------------------#
 @usuario_bp.route('/registro', methods=['POST'])
 def crear_usuario():
-    '''
-     """
-    Registro de usuario
+    """
+      Registro de nuevo usuario
 
-    Este endpoint permite a un usuario registrarse en proveeyendo
-    un username, correo y contraseña.
-    '''
+      Permite registrar un nuevo usuario con nombre, email, contraseña e ID de rol.
+      ---
+      tags:
+        - Usuarios
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/RegistroUsuario'
+      responses:
+        201:
+          description: Usuario creado exitosamente
+          schema:
+            $ref: '#/definitions/RegistroUsuario'
+        400:
+          description: Datos inválidos o incompletos
+      """
     try:
         data = request.get_json()
         nombre = data.get('nombre')
@@ -57,13 +104,13 @@ def crear_usuario():
             return jsonify({"mensaje": "Faltan alguno de los campos, favor revisar"}), HTTPStatus.BAD_REQUEST
         
         # Validar duplicados
-        if Usuario.query.filter_by(email-email).first():
+        if Usuario.query.filter_by(email = email).first():
             return jsonify({"mensaje": "Ya existe un usuario con este email"}), HTTPStatus.BAD_REQUEST
         
         # Creacion del usuario
-        nuevo_usuario = Usuario(nombre= nombre,
+        nuevo_usuario = Usuario(nombre = nombre,
                                 email = email,
-                                password=generate_password_hash(password),
+                                password = generate_password_hash(password),
                                 id_rol = id_rol)
         
         db.session.add(nuevo_usuario)
@@ -83,10 +130,29 @@ def crear_usuario():
 # -------------------------  Endpoint para hacer Login ------------------------------------#
 @usuario_bp.route('/login', methods=['POST'])
 def login():
-    '''
-    docstring
-    
-    '''
+    """
+    Login de usuario
+
+    Permite a un usuario autenticarse usando su email y contraseña. Retorna un token JWT si es exitoso.
+    ---
+    tags:
+      - Usuarios
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+         $ref: '#/definitions/LoginUsuario'
+    responses:
+      200:
+        description: Login exitoso con token JWT
+        schema:
+          $ref: '#/definitions/LoginUsuario'
+      401:
+        description: Credenciales inválidas
+      404:
+        description: Usuario no encontrado
+    """
     json_data = request.get_json()
     email    = json_data.get('email')
     password = json_data.get('password')
@@ -131,12 +197,7 @@ def obtener_usuario_autenticado():
       200:
         description: Datos del usuario autenticado
         schema:
-          id: Usuario
-          properties:
-            id:
-              type: integer
-            username:
-              type: string
+          $ref: '#/definitions/Usuario'
       404:
         description: Usuario no encontrado
     """    

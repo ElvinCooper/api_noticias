@@ -17,11 +17,11 @@ class PostSchema(SQLAlchemyAutoSchema):
     id_pais = fields.Str(required=True, load_only=True)  # UUID como string para deserialización
     fecha_publicacion = fields.DateTime(dump_only=True)  # Solo para serialización (generado por DB)
     visible = fields.Boolean(load_default=True)  # Por defecto True
-    autor = fields.Nested('UsuarioSchema', exclude=('posts',), dump_only=True)  # Relación con Usuario
-    pais = fields.Nested('PaisSchema', exclude=('posts',), dump_only=True)  # Relación con Pais
-    categorias = fields.Nested('CategoriaSchema', many=True, dump_only=True)  # Relación muchos a muchos
-    multimedia = fields.Nested('MultimediaSchema', many=True, dump_only=True)  # Relación uno a muchos
-    favoritos = fields.Nested('FavoritoSchema', many=True, dump_only=True)  # Relación uno a muchos
+    autor = fields.Nested('UserSchema', exclude=('posts',), dump_only=True)  # Relación con Usuario
+    pais = fields.Nested("PaisSchema", exclude=('posts',), dump_only=True)  # Relación con Pais
+    categorias = fields.Nested("CategoriaSchema", many=True, dump_only=True)  # Relación muchos a muchos
+    multimedia = fields.Nested("MultimediaSchema", many=True, dump_only=True)  # Relación uno a muchos
+    favoritos = fields.Nested("FavoritoSchema", many=True, dump_only=True)  # Relación uno a muchos
     status    = fields.Boolean(load_default=True) 
 
     @post_load
