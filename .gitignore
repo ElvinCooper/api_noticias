@@ -1,3 +1,33 @@
+# Entorno virtual
+venv/
+env/
+infonovax/
 api_noticias/Lib
-env
-env
+
+# Archivos de configuración y entorno
+.env
+*.env
+
+# __pycache__ y archivos temporales de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Archivos de log y base de datos local
+*.log
+*.sqlite3
+*.db
+
+# Archivos de compilación
+*.so
+*.dll
+*.o
+*.pyc
+
+# Configuraciones de IDEs
+.vscode/
+.idea/
+*.swp
+
+# Otros
+.DS_Store

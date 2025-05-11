@@ -13,8 +13,6 @@ import json
 
 
 
-
-
 def create_app(testing=True):
     app = Flask(__name__)
     load_dotenv()

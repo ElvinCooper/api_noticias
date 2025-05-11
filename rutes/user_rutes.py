@@ -159,7 +159,7 @@ def login():
 
 
     # Validar el usuario 
-    usuario = Usuario.query.filter.by(email=email).first()
+    usuario = Usuario.query.filter_by(email=email).first()
     if not usuario:
         return jsonify({"mensaje": "Este usuario no existe en la base de datos"}), HTTPStatus.NOT_FOUND
     
@@ -168,7 +168,7 @@ def login():
         return jsonify({"mensaje": "Credenciales invalidas"}), HTTPStatus.UNAUTHORIZED
     
     # Generar token de autenticacion
-    acces_token = create_access_token(identity=usuario.id, expires_delta=timedelta(hours=2))
+    acces_token = create_access_token(identity=usuario.id_usuario, expires_delta=timedelta(hours=2))
 
 
     # Logica de envio de correos
@@ -202,7 +202,7 @@ def obtener_usuario_autenticado():
         description: Usuario no encontrado
     """    
     user_id = get_jwt_identity()  # Extrae el 'identity' del JWT
-    usuario = Usuario.query.filter_by(id=user_id).first()
+    usuario = Usuario.query.filter_by(id_usuario=user_id).first()
 
     if not usuario:
         return jsonify({"error": "Usuario no encontrado"}), HTTPStatus.NOT_FOUND

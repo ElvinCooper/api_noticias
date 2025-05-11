@@ -10,7 +10,7 @@ class Post(db.Model):
     id_post    = db.Column(db.String, primary_key=True, default= lambda: str(uuid.uuid4()))
     titulo     = db.Column(db.String(100), nullable=False)
     contenido  = db.Column(db.String, nullable=False)
-    id_usuario = db.Column(db.Integer, db.ForeignKey('usuarios.id_usuario', ondelete='CASCADE'), nullable=False)
+    id_usuario = db.Column(db.String(36), db.ForeignKey('usuarios.id_usuario', ondelete='CASCADE'), nullable=False)
     id_pais    = db.Column(db.String, db.ForeignKey('paises.id_pais', ondelete='RESTRICT'), nullable=False, default= lambda: str(uuid.uuid4()))
     multimedia = db.relationship('Multimedia', back_populates='post', lazy=True)
     fecha_publicacion = db.Column(db.DateTime, default=datetime.now(timezone.utc))

@@ -1,7 +1,9 @@
 from flask import Blueprint, request, jsonify
 from modelos.post_model import Post
-from modelos.categoria_model import Categoria
+from schemas.categoria_schema import CategoriaSchema
 from schemas.post_schema import PostSchema
+from schemas.pais_schema import PaisSchema
+from schemas.favorito_schema import FavoritoSchema
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from extensions import db
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -20,7 +22,7 @@ posts_schemas = PostSchema(many=True)
 
 
 #---------------------- Enpoint para consultar todos los post en la BD --------------------------#
-@post_bp.route('/read', methods=['GET'])
+@post_bp.route('/post', methods=['GET'])
 @jwt_required() 
 def get_all_post():
   """
@@ -107,17 +109,11 @@ def crear_post():
   user_id = get_jwt_identity()
   
   try:
+    json_data['id_usuario'] = user_id
     nuevo_post = post_schema.load(json_data)
-    post = Post(titulo=nuevo_post['titulo'],
-                contenido=nuevo_post['contenido'],
-                id_pais=nuevo_post['id_pais'],
-                visible=nuevo_post.get('visible', True), # valor por defecto
-                status=nuevo_post.get('status', True), # valor por defecto
-                  id_usuario=user_id)   # viene del token
-      
-    db.session.add(post)
+    db.session.add(nuevo_post)
     db.session.commit()
-    return jsonify(post_schema.dump(post)), HTTPStatus.CREATED
+    return jsonify(post_schema.dump(nuevo_post)), HTTPStatus.CREATED
   except Exception as e:
       db.session.rollback()
       return jsonify({'error': str(e)}), HTTPStatus.BAD_REQUEST
