@@ -111,20 +111,17 @@ def create_app(testing=True):
 
     return app
 
-
+app = create_app()
 
 if __name__ == '__main__':
-    app = create_app()
+    with app.app_context():
+        from seeds.init_data import seed_categorias, seed_roles, seed_paises
+        db.create_all()         # crea las tablas si no existen
+        seed_categorias()       # inserta las categorías base si no existen
+        seed_roles()            # inserta los roles de usuario
+        seed_paises()           # insertar los paises y sus detalles
 
-
-with app.app_context():
-    from seeds.init_data import seed_categorias, seed_roles, seed_paises
-    db.create_all()         # crea las tablas si no existen
-    seed_categorias()       # inserta las categorías base si no existen
-    seed_roles()            # inserta los roles de usuario
-    seed_paises()           # insertar los paises y sus detalles
-
-app.run(debug=True)
+    app.run(debug=True)
 
 
 
