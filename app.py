@@ -9,9 +9,10 @@ from config import TestingConfig, ProductionConfig, DevelopmentConfig
 from rutes.user_rutes import usuario_bp
 from rutes.post_rutes import post_bp
 from rutes.favorito_rutes import favorito_bp
+from rutes.categoria_rutes import categorias_bp
 import json
-
-
+from sqlite_config import enable_sqlite_foreign_keys 
+from datetime import timedelta
 
 def create_app(testing=True):
     app = Flask(__name__)
@@ -19,7 +20,15 @@ def create_app(testing=True):
 
 
     # detectar el entorno desde .FLASKENV
-    env = os.getenv("FLASK_ENV", "development")
+    env = os.getenv("FLASK_ENV")
+
+    # Activar soporte de claves foráneas en SQLite
+    enable_sqlite_foreign_keys()
+
+    # Configurar tiempos de expiracion para los token
+    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=30)
+    app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=7)
+
 
     if testing:
         app.config.from_object(TestingConfig)
@@ -83,9 +92,6 @@ def create_app(testing=True):
             "definitions": definitions["definitions"]
         }
 
-        # ✅ Esto agrega correctamente la clave "definitions"
-        #swagger_template.update(definitions)
-
         Swagger(app, template=swagger_template)
 
 
@@ -94,27 +100,29 @@ def create_app(testing=True):
     app.register_blueprint(usuario_bp,  url_prefix='/api')
     app.register_blueprint(post_bp,     url_prefix='/api')
     app.register_blueprint(favorito_bp, url_prefix='/api')
+    app.register_blueprint(categorias_bp, url_prefix='/api')
 
+
+    from auth.jwt_callbacks import jwt
+    jwt.init_app(app)
+
+    from cli_comands import register_commands
+    register_commands(app)
 
     return app
 
 app = create_app()
 
 
-# Comando para crear la base de datos
-@app.cli.command('db_create')
-def db_create():
-    with app.app_context():
-        db.create_all()
-        print("Base de datos en:", app.config["SQLALCHEMY_DATABASE_URI"])
+with app.app_context():
+    from seeds.init_data import seed_categorias, seed_roles, seed_paises
+    db.create_all()         # crea las tablas si no existen
+    seed_categorias()       # inserta las categorías base si no existen
+    seed_roles()            # inserta los roles de usuario
+    seed_paises             # insertar los paises y sus detalles
 
 
-# comando para eliminar la base de datos
-@app.cli.command('db_drop')
-def db_drop():
-    with app.app_context():
-        db.drop_all()
-        print('Base de datos eliminada')
+
 
 
 

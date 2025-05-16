@@ -1,8 +1,8 @@
-"""Migrando los modelos
+"""Estructura incial con blocklist
 
-Revision ID: 92657f0c1767
+Revision ID: 82ac9163b6b3
 Revises: 
-Create Date: 2025-05-03 18:02:15.188880
+Create Date: 2025-05-13 11:59:06.821281
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '92657f0c1767'
+revision = '82ac9163b6b3'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -40,7 +40,7 @@ def upgrade():
     sa.Column('id_post', sa.String(), nullable=False),
     sa.Column('titulo', sa.String(length=100), nullable=False),
     sa.Column('contenido', sa.String(), nullable=False),
-    sa.Column('id_usuario', sa.Integer(), nullable=False),
+    sa.Column('id_usuario', sa.String(length=36), nullable=False),
     sa.Column('id_pais', sa.String(), nullable=False),
     sa.Column('fecha_publicacion', sa.DateTime(), nullable=True),
     sa.Column('visible', sa.Boolean(), nullable=True),
@@ -58,6 +58,15 @@ def upgrade():
     sa.PrimaryKeyConstraint('id_rol'),
     sa.UniqueConstraint('descripcion')
     )
+    op.create_table('token_blocklist',
+    sa.Column('id', sa.String(length=36), nullable=False),
+    sa.Column('jti', sa.String(length=36), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.PrimaryKeyConstraint('id')
+    )
+    with op.batch_alter_table('token_blocklist', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_token_blocklist_jti'), ['jti'], unique=True)
+
     op.create_table('categorias',
     sa.Column('id_categoria', sa.String(), nullable=False),
     sa.Column('descripcion', sa.String(length=50), nullable=False),
@@ -105,6 +114,10 @@ def downgrade():
 
     op.drop_table('usuarios')
     op.drop_table('categorias')
+    with op.batch_alter_table('token_blocklist', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_token_blocklist_jti'))
+
+    op.drop_table('token_blocklist')
     op.drop_table('roles')
     with op.batch_alter_table('posts', schema=None) as batch_op:
         batch_op.drop_index('idx_fecha_publicacion')

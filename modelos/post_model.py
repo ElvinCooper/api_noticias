@@ -18,8 +18,7 @@ class Post(db.Model):
     autor       = db.relationship('Usuario', back_populates='posts')
     pais        = db.relationship('Pais', back_populates='posts', lazy=True)   # Relacion con el modelo Pais(posts)
     categorias  = db.relationship('Categoria', secondary='posts_categorias', back_populates='posts') 
-    multimedia  = db.relationship('Multimedia', back_populates='post', lazy=True)
-    favoritos   = db.relationship('Favorito', back_populates='post')
+    favoritos   = db.relationship('Favorito', back_populates='post', cascade='all, delete-orphan', passive_deletes=True)
     status     =  db.Column(db.Boolean, default=True)
 
     __table_args__ = (db.Index('idx_fecha_publicacion', 'fecha_publicacion'),)

@@ -8,7 +8,7 @@ class CategoriaSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Categoria
         load_instance = True
-        include_relationships = True
+        exclude = ('multimedia',)
 
     id_categoria  = fields.Str(dump_only=True)
     descripcion   = fields.Str(required=True, validate=validate.Length(50))

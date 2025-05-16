@@ -6,6 +6,7 @@
         "id": { "type": "integer" },
         "nombre": { "type": "string" },
         "email": { "type": "string" },
+        "telefono": {"type": "string"},
         "id_rol": { "type": "integer" }
       }
     },
@@ -25,20 +26,39 @@
         "email": { "type": "string" },
         "password": { "type": "string" }
       }
-    },  
+    }, 
+     
     "Post": {
-      "type": "object",
-      "properties": {
-        "id": { "type": "integer" },
-        "titulo": { "type": "string" },
-        "contenido": { "type": "string" },
-        "id_pais": { "type": "integer" },
-        "visible": { "type": "boolean" },
-        "status": { "type": "boolean" },
-        "id_usuario": { "type": "integer" }
-      },
-      "required": ["titulo", "contenido", "id_pais", "id_usuario"]
+  "type": "object",
+  "properties": {
+    "titulo": {
+      "type": "string"
     },
+    "contenido": {
+      "type": "string"
+    },
+    "id_pais": {
+      "type": "string",
+      "description": "UUID del país al que pertenece el post"
+    },
+    "visible": {
+      "type": "boolean",
+      "default": true
+    },
+    "status": {
+      "type": "boolean",
+      "default": true
+    },
+    "categorias": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Lista de IDs de categorías asociadas al post"
+    }
+  },
+  "required": ["titulo", "contenido", "id_pais"]
+},
 
     "Favorito": {
       "type": "object",
@@ -49,6 +69,32 @@
           "type": "integer"},
         "id_post": {
           "type": "integer"}
+      }
+    },
+
+    "Categoria": {
+      "type": "object",
+      "properties": {
+        "id_categoria": {"type": "string"},
+        "descripcion":  {"type": "string"},
+        "id_multimedia": {
+          "type": "string",
+          "nullable": true
+        }  
+      }
+    },
+    
+    "RefreshTokenResponse": {
+      "type": "object",
+      "properties": {
+        "acces_token": {
+          "type": "string",
+          "description": "Nuevo token de acceso válido por tiempo limitado"
+        },
+        "refresh_token": {
+          "type": "string",
+          "description": "Nuevo token de actualización para futuras renovaciones"
+        }
       }
     }
   }  

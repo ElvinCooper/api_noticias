@@ -14,9 +14,11 @@ class UserSchema(SQLAlchemyAutoSchema):
     id_usuario     = fields.String(dump_only=True)
     nombre         = auto_field(required=True, validate=validate.Length(min=1, max=60))
     email          = fields.Email(required=True) 
-    password       = auto_field(required=True, validate=validate.Length(min=8, max=25))
+    password       = auto_field(required=True, validate=validate.Length(min=8, max=25), load_only=True)
     id_rol         = fields.String(dump_only=True)
     fecha_registro = fields.Date(dump_only=True)
-    rol            = fields.Nested(RolSchema, exclude=('usuarios',), dump_only=True)  # OBjeto Rol relacionado.
+    rol            = fields.Nested(RolSchema, only=('descripcion',), dump_only=True)  # OBjeto Rol relacionado.
     post           = fields.Nested("PostSchema", many=True, dump_only=True)  # Lista de post relacionados
     favoritos      = fields.List(fields.Nested("FavoritoSchema", exclude=('usuario',))) # Lista de favoritos relacionados
+
+    

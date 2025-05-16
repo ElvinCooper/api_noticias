@@ -9,7 +9,7 @@ class PaisSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Pais
         load_instance = True
-        include_relationships = True
+        exclude = ('multimedia',)
 
 
     id_pais = fields.Str(dump_only=True)

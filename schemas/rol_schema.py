@@ -7,7 +7,8 @@ class RolSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Rol
         load_instance = True
-        include_relationships = True
+        #include_relationships = True
+        exclude = ('usuarios',)
 
         id_rol = fields.String(dump_only=True)
         descripcion = fields.String(required=True, validate=validate.Length(min=10, max=120))

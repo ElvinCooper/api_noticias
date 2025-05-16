@@ -1,15 +1,15 @@
 from flask import Blueprint, request, jsonify
 from modelos.post_model import Post
-from schemas.categoria_schema import CategoriaSchema
+from modelos.post_categoria_model import PostCategoria
+from modelos.categoria_model import Categoria
+from schemas.simple.post_simple_schema import PostSimpleSchema
 from schemas.post_schema import PostSchema
-from schemas.pais_schema import PaisSchema
-from schemas.favorito_schema import FavoritoSchema
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from extensions import db
 from werkzeug.security import check_password_hash, generate_password_hash
 from http import HTTPStatus
+from modelos.pais_model import Pais
 from marshmallow.exceptions import ValidationError
-from datetime import timedelta, timezone
 
 
 
@@ -22,7 +22,7 @@ posts_schemas = PostSchema(many=True)
 
 
 #---------------------- Enpoint para consultar todos los post en la BD --------------------------#
-@post_bp.route('/post', methods=['GET'])
+@post_bp.route('/posts', methods=['GET'])
 @jwt_required() 
 def get_all_post():
   """
@@ -38,16 +38,20 @@ def get_all_post():
           items:
             $ref: '#/definitions/Post'
   """
-  posts = Post.query.all()
-  return jsonify(posts_schemas.dump(posts)), HTTPStatus.OK
+  #posts = Post.query.all()
+  posts = Post.query.paginate(page=1, per_page=10, error_out=False)
+  return jsonify({
+                "posts": posts_schemas.dump(posts.items, many=True),
+                "pagina_actual": posts.page,
+                "total_paginas": posts.pages}), HTTPStatus.OK
 
 
 
 
 
 #------------------------ Enpoint consultar un post con su id ----------------------#
-@post_bp.route('/<string:id_post>', methods=['GET'])
-def get_post(id_post):
+@post_bp.route('post//<string:id_post>', methods=['GET'])
+def get_post_by_user(id_post):
     """
     Obtener un post por ID
 
@@ -69,7 +73,11 @@ def get_post(id_post):
       404:
         description: Post no encontrado
     """
-    post = Post.query.get_or_404(id_post)
+    
+    post = db.session.get(Post, id_post)
+
+    if not post:
+      return jsonify({"mensaje": "Post no encontrado"}), HTTPStatus.NOT_FOUND  
 
     return jsonify(post_schema.dump(post)), HTTPStatus.OK
 
@@ -103,22 +111,80 @@ def crear_post():
     400:
       description: Error al crear el post
   """
-
     
   json_data = request.get_json()
   user_id = get_jwt_identity()
   
   try:
     json_data['id_usuario'] = user_id
+    id_pais = json_data['id_pais']
+    categoria_ids = json_data.pop('categorias', [])
+
+    # validar la existencia del pais
+    pais = Pais.query.filter_by(id_pais=id_pais).first()  #validar si el codigo de pais recibido existe
+    if not pais:
+       return jsonify({"error": "El id_pais digitado no existe en el catalogo, favor revisar"})
+    
+    # validar existencia de cada categoria
+    categorias_validas = []
+    for id_categoria in categoria_ids:
+      if Categoria.query.get(id_categoria):
+        categorias_validas.append(id_categoria)
+      else:
+         continue
+    
+    
+    # crear el post
     nuevo_post = post_schema.load(json_data)
     db.session.add(nuevo_post)
+    db.session.flush()  # para tener el ID del post antes del commit
+
+    # Insertar relaciones
+    for id_categoria in categorias_validas:
+       relacion = PostCategoria(id_post=nuevo_post.id_post, id_categoria=id_categoria)
+       db.session.add(relacion)
+
     db.session.commit()
     return jsonify(post_schema.dump(nuevo_post)), HTTPStatus.CREATED
+  
   except Exception as e:
       db.session.rollback()
       return jsonify({'error': str(e)}), HTTPStatus.BAD_REQUEST
+  
 
 
+#------------------------ Actualizar o Editar  un Post -----------------------------#
+@post_bp.route('/update/<string:id_post>', methods=['PUT'])
+@jwt_required()
+def actualizar_post(id_post):
+
+  id_usuario = get_jwt_identity()
+  post = db.session.get(Post, id_post)
+
+  if not post:
+    return jsonify({"mensaje": "Post no encontrado"}), HTTPStatus.NOT_FOUND
+  
+  if post.id_usuario != id_usuario:
+    return jsonify({"mensaje": "No tienes permisos para editar este post"}), HTTPStatus.FORBIDDEN
+
+  try:
+    json_data = request.get_json()
+    if not json_data:
+       return jsonify({"mensaje":"No hay datos proveidos"}), HTTPStatus.BAD_REQUEST
+    datos = post_schema.load(json_data, session=db.session, partial=True)
+
+    post.id_pais   = datos.pais      or post.id_pais
+    post.titulo    = datos.titulo    or post.titulo
+    post.contenido = datos.contenido or post.contenido
+
+    db.session.commit()
+
+    return jsonify(post_schema.dump(post)), HTTPStatus.OK
+
+  except ValidationError as e:
+    return jsonify({"error": e.messages}), HTTPStatus.BAD_REQUEST
+  except Exception as err:
+    return jsonify({"error": str(err)}), HTTPStatus.BAD_REQUEST              
 
 
 

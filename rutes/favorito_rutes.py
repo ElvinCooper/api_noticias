@@ -1,18 +1,19 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from modelos.favorito_model import Favorito
+from schemas.simple.post_simple_schema import PostSimpleSchema
 from modelos.post_model import Post
 from extensions import db
 from http import HTTPStatus
 
 favorito_bp = Blueprint('favoritos', __name__)
-
+post_schema = PostSimpleSchema(many=True)
 
 
 # ------------------- Endpoint para ver todos los post favoritos --------------------------#
-@favorito_bp.route('/', methods=['GET'])
+@favorito_bp.route('/favoritos', methods=['GET'])
 @jwt_required()
-def obtener_favoritos_usuario():
+def obtener_favoritos():
     """
     Obtener posts favoritos del usuario autenticado
     ---
@@ -27,23 +28,21 @@ def obtener_favoritos_usuario():
           type: array
           items:
             $ref: '#/definitions/Post'
-    """
+    """    
     id_usuario = get_jwt_identity()
     favoritos = Favorito.query.filter_by(id_usuario=id_usuario).all()
     
-    posts = [fav.post for fav in favoritos]  # accedemos a los objetos Post relacionados
+    posts = [fav.post for fav in favoritos]
 
-    from schemas.post_schema import PostSchema  # asegúrate de tener un esquema para Post
-    post_schema = PostSchema(many=True)
     
     return jsonify(post_schema.dump(posts)), HTTPStatus.OK
 
 
 
-# ------------------- Endpoint para ver favoritos de otro usuario por si ID --------------------------#
+# ------------------- Endpoint para ver favoritos por su ID --------------------------#
 
-@favorito_bp.route('/usuario/<string:id_usuario>', methods=['GET'])
-def favoritos_por_usuario(id_usuario):
+@favorito_bp.route('/<string:id_usuario>/favoritos', methods=['GET'])
+def get_favoritos_by_user(id_usuario):
     """
     Obtener favoritos de un usuario por su ID
     ---
@@ -64,6 +63,10 @@ def favoritos_por_usuario(id_usuario):
             $ref: '#/definitions/Post'
     """
     favoritos = Favorito.query.filter_by(id_usuario=id_usuario).all()
+
+    if not favoritos:
+        return jsonify({"error": "Favorito no encontrado"}), HTTPStatus.NOT_FOUND
+    
     posts = [fav.post for fav in favoritos]
 
     from schemas.post_schema import PostSchema
@@ -76,7 +79,7 @@ def favoritos_por_usuario(id_usuario):
 
 #------------------  Enpoint para marcar un post como favorito ----------------------#
 
-@favorito_bp.route('/', methods=['POST'])
+@favorito_bp.route('/favorito', methods=['POST'])
 @jwt_required()
 def crear_favorito():
     """
@@ -143,7 +146,7 @@ def crear_favorito():
 
 #------------------------------------ Enpoint para eliminar un favorito ---------------------------------------#
 
-@favorito_bp.route('/<string:id_post>', methods=['DELETE'])
+@favorito_bp.route('/eliminar/<string:id_post>', methods=['DELETE'])
 @jwt_required()
 def eliminar_favorito(id_post):
     """

@@ -1,18 +1,20 @@
 from flask import Blueprint, request, jsonify
 from modelos.user_model import Usuario
-from schemas.user_schema import UserSchema
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from schemas.user_simple_schema import UserSimpleSchema
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, create_refresh_token
 from extensions import db
 from werkzeug.security import check_password_hash, generate_password_hash
 from http import HTTPStatus
 from marshmallow.exceptions import ValidationError
 from datetime import timedelta
+from flask_jwt_extended import get_jwt
+from modelos.TokenBlocklist_model import TokenBlocklist
 
 
 
 usuario_bp  = Blueprint('usuarios', __name__)
-usuario_schema = UserSchema()
-usuarios_schema = UserSchema(many=True)
+usuario_schema = UserSimpleSchema()
+usuarios_schema = UserSimpleSchema(many=True)
 
 
 
@@ -64,6 +66,9 @@ def get_usuario(id_usuario):
             description: Usuario no encontrado
         """    
     usuario = Usuario.query.get_or_404(id_usuario)
+    if not usuario:
+        return jsonify({"error": "Usuario no encontrado"}), HTTPStatus.NOT_FOUND
+    
     return jsonify(usuario_schema.dumps(usuario)), HTTPStatus.OK
 
 
@@ -96,6 +101,7 @@ def crear_usuario():
         data = request.get_json()
         nombre = data.get('nombre')
         email  = data.get('email')
+        telefono = data.get('telefono')
         password = data.get('password')
         id_rol = data.get('id_rol')
 
@@ -108,10 +114,11 @@ def crear_usuario():
             return jsonify({"mensaje": "Ya existe un usuario con este email"}), HTTPStatus.BAD_REQUEST
         
         # Creacion del usuario
-        nuevo_usuario = Usuario(nombre = nombre,
-                                email = email,
+        nuevo_usuario = Usuario(nombre   = nombre,
+                                email    = email,
+                                telefono = telefono,
                                 password = generate_password_hash(password),
-                                id_rol = id_rol)
+                                id_rol   = id_rol)
         
         db.session.add(nuevo_usuario)
         db.session.commit()
@@ -124,6 +131,45 @@ def crear_usuario():
     
     except ValidationError as err:
         return jsonify({"error": err.messages}), HTTPStatus.BAD_REQUEST
+
+
+# --------------------------------- Actualizar datos de un usuario ---------------------------------#
+@usuario_bp.route('/update/<string:id_usuario>', methods=['PUT'])
+@jwt_required()
+def actualizar_usuario(id_usuario):
+    
+    id_usuario = get_jwt_identity()
+    
+
+    admin_id = get_jwt_identity()
+    admin_user = db.session.get(Usuario, admin_id)
+    
+    if not admin_user or admin_user.rol != 'admin':
+      return jsonify({"error": "No autorizado. Solo administradores pueden realizar esta acción."}), HTTPStatus.FORBIDDEN
+    
+    usuario = db.session.get(Usuario, id_usuario)
+
+    if not usuario:
+        return jsonify({"error": "Usuario no encontrado"}), HTTPStatus.NOT_FOUND
+    
+    try:
+      json_data = request.get_json()
+      if not json_data:
+        return jsonify({"mensaje":"No hay datos proporcinados"}), HTTPStatus.BAD_REQUEST
+      
+      # verificar si ya existe un usuario con el mismo email
+      if Usuario.query.filter_by(email=json_data.email).first():        
+        return jsonify({"mensaje": "Ya existe un contacto con este email"}), HTTPStatus.BAD_REQUEST
+      
+      datos_actualizados = usuario_schema.load(json_data, session=db.session, partial=True)
+
+      db.session.commit()
+      return jsonify(usuario_schema.dump(datos_actualizados)), HTTPStatus.OK
+
+    except ValidationError as e:
+      return jsonify({"error": e.messages}), HTTPStatus.BAD_REQUEST
+    except Exception as err:
+      return jsonify({"error": str(err)}), HTTPStatus.BAD_REQUEST  
 
 
 
@@ -167,15 +213,89 @@ def login():
     if not check_password_hash(usuario.password, password):
         return jsonify({"mensaje": "Credenciales invalidas"}), HTTPStatus.UNAUTHORIZED
     
+    rol = usuario.rol.descripcion if usuario.rol else "sin_rol_definido" # ← Obtener el nombre del rol (ej. 'admin')
+
     # Generar token de autenticacion
-    acces_token = create_access_token(identity=usuario.id_usuario, expires_delta=timedelta(hours=2))
-
-
-    # Logica de envio de correos
+    acces_token = create_access_token(identity=usuario.id_usuario, additional_claims={"rol": rol})
+    refresh_token = create_refresh_token(identity=usuario.id_usuario)
 
 
     return jsonify({"mensaje": "Login exitoso",
-                    "acces_token": acces_token}), HTTPStatus.OK
+                    "acces_token": acces_token,
+                    "refresh_token": refresh_token,
+                    }), HTTPStatus.OK
+
+
+
+#------------------ Endpoint para renovar los tokens -------------------#
+@usuario_bp.route('/refresh', methods=['POST'])
+@jwt_required(refresh=True) # solo acepta refresh tokens
+def refresh():
+    """
+    Renovación de tokens JWT (Access y Refresh)
+
+    Este endpoint permite a un usuario autenticado con un token de actualización (refresh token) obtener
+    un nuevo par de tokens JWT. El refresh token utilizado se revoca inmediatamente después de ser usado, 
+    implementando una política de rotación segura.
+
+    ---
+    tags:
+      - Usuarios
+    security:
+      - BearerAuth: []
+    responses:
+      200:
+        description: Nuevos tokens JWT generados exitosamente
+        schema:
+          $ref: '#/definitions/RefreshTokenResponse'
+      401:
+        description: El refresh token ha sido revocado o es inválido
+    """    
+    jwt_payload = get_jwt()
+    jti = jwt_payload['jti'] # id del token actual
+    identity = get_jwt_identity() # id del usuario
+
+    # validar si ya el token fue revocado
+    token_revocado = TokenBlocklist.query.filter_by(jti=jti).first()
+    if token_revocado:
+        return jsonify({"mensaje": "Refresh token revocado"}), HTTPStatus.UNAUTHORIZED
+    
+    # Revocar token actual (guardando en el blocklist)
+    db.session.add(TokenBlocklist(jti=jti))
+    db.session.commit()
+
+    # Emitir nuevo acces y refresh token
+    new_acces_token = get_jwt_identity()
+    new_refresh_token = create_refresh_token(identity=identity)
+
+    return jsonify({"acces_token": new_acces_token,
+                    "refresh_token": new_refresh_token,}), HTTPStatus.OK
+
+
+
+# ------------------ Endpoint para Logout -----------------------#
+@usuario_bp.route('/logout', methods=['POST'])
+@jwt_required()
+def logout():
+  """
+  Cerrar sesión
+
+  Revoca el token JWT actual agregándolo a la blocklist.
+  ---
+  tags:
+    - Usuarios
+  security:
+    - BearerAuth: []
+  responses:
+    200:
+      description: Sesión cerrada exitosamente
+    401:
+      description: Token inválido o ya revocado
+  """
+  jti = get_jwt()["jti"]  # Para extraer el ID único del token
+  db.session.add(TokenBlocklist(jti=jti))
+  db.session.commit()
+  return jsonify({"mensaje": "Sesión cerrada con éxito"}), HTTPStatus.OK
 
 
 
@@ -208,3 +328,15 @@ def obtener_usuario_autenticado():
         return jsonify({"error": "Usuario no encontrado"}), HTTPStatus.NOT_FOUND
 
     return jsonify(usuario_schema.dump(usuario)), HTTPStatus.OK
+
+
+
+
+#-----------  Endpoint para validar si la solcitud viene del administrador -----------#
+@jwt_required()
+def endpoint_solo_admin():
+    claims = get_jwt()
+    if claims.get("rol") != "admin":
+        return jsonify({"error": "Acceso denegado"}), 403
+
+    return jsonify({"mensaje": "Bienvenido administrador"}), 200

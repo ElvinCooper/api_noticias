@@ -7,7 +7,8 @@ class MultimediaSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Multimedia
         load_instance = True
-        include_relationships = True
+        #include_relationships = True
+        exclude = ('categoria', 'pais')
 
     id_multimedia  = fields.Str(dump_only=True)  # UUID como string
     nombre_archivo = fields.Str(allow_none=True, validate=validate.Length(50))
