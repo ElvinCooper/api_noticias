@@ -119,7 +119,7 @@ with app.app_context():
     db.create_all()         # crea las tablas si no existen
     seed_categorias()       # inserta las categorías base si no existen
     seed_roles()            # inserta los roles de usuario
-    seed_paises             # insertar los paises y sus detalles
+    seed_paises()           # insertar los paises y sus detalles
 
 
 
