@@ -1,12 +1,23 @@
 services:
   - type: web
-    name: flask-api
+    name: infonovax-api
     env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app
     plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn "app:create_app"
+    autoDeploy: true
     envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: JWT_SECRET_KEY
+        value: tu_clave_super_secreta
+      - key: FRONTEND_URL
+        value: http://localhost:3000   #para pruebas
       - key: DATABASE_URL
         fromDatabase:
-          name: tu-db
+          name: infonovax-db
           property: connectionString
+
+databases:
+  - name: infonovax-db
+    plan: free
