@@ -111,7 +111,10 @@ def create_app(testing=True):
 
     return app
 
-app = create_app()
+
+
+if __name__ == '__main__':
+    app = create_app()
 
 
 with app.app_context():
@@ -121,13 +124,7 @@ with app.app_context():
     seed_roles()            # inserta los roles de usuario
     seed_paises()           # insertar los paises y sus detalles
 
-
-
-
-
-
-if __name__ == '__main__':
-    app.run(debug=True)
+app.run(debug=True)
 
 
 
