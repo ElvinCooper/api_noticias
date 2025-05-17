@@ -10,6 +10,7 @@ from rutes.user_rutes import usuario_bp
 from rutes.post_rutes import post_bp
 from rutes.favorito_rutes import favorito_bp
 from rutes.categoria_rutes import categorias_bp
+from rutes.paises_rutes import pais_bp
 import json
 from sqlite_config import enable_sqlite_foreign_keys 
 from datetime import timedelta
@@ -101,6 +102,7 @@ def create_app(testing=True):
     app.register_blueprint(post_bp,     url_prefix='/api')
     app.register_blueprint(favorito_bp, url_prefix='/api')
     app.register_blueprint(categorias_bp, url_prefix='/api')
+    app.register_blueprint(pais_bp, url_prefix='/api')
 
 
     from auth.jwt_callbacks import jwt

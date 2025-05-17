@@ -15,10 +15,19 @@
       "properties": {"nombre": 
       { "type": "string" },
         "email": { "type": "string" },
+        "telefono": { "type": "string" },
         "password": { "type": "string" },
         "id_rol": { "type": "integer" }
       },
       "required": ["nombre", "email", "password", "id_rol"]
+    },
+    "ActualizarUsuario": {
+      "type": "object",
+      "properties": 
+      {"nombre": { "type": "string" },
+        "email": { "type": "string" },
+        "telefono": { "type": "string" }
+      }
     },
     "LoginUsuario": {
       "type": "object",
@@ -95,6 +104,15 @@
           "type": "string",
           "description": "Nuevo token de actualización para futuras renovaciones"
         }
+      }
+    },
+    "Paises": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "nombre_pais": { "type": "string" },
+        "abrebiatura_pais": { "type": "string" },
+        "id_multimedia": {"type": "string"}        
       }
     }
   }  

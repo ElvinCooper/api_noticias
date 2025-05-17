@@ -12,7 +12,7 @@ post_schema = PostSimpleSchema(many=True)
 
 # ------------------- Endpoint para ver todos los post favoritos --------------------------#
 @favorito_bp.route('/favoritos', methods=['GET'])
-@jwt_required()
+#@jwt_required()
 def obtener_favoritos():
     """
     Obtener posts favoritos del usuario autenticado
@@ -80,7 +80,7 @@ def get_favoritos_by_user(id_usuario):
 #------------------  Enpoint para marcar un post como favorito ----------------------#
 
 @favorito_bp.route('/favorito', methods=['POST'])
-@jwt_required()
+#@jwt_required()
 def crear_favorito():
     """
     Marcar un post como favorito
@@ -147,7 +147,7 @@ def crear_favorito():
 #------------------------------------ Enpoint para eliminar un favorito ---------------------------------------#
 
 @favorito_bp.route('/eliminar/<string:id_post>', methods=['DELETE'])
-@jwt_required()
+#@jwt_required()
 def eliminar_favorito(id_post):
     """
     Eliminar un post de los favoritos del usuario

@@ -2,28 +2,25 @@ from flask import Blueprint, request, jsonify
 from modelos.post_model import Post
 from modelos.post_categoria_model import PostCategoria
 from modelos.categoria_model import Categoria
-from schemas.simple.post_simple_schema import PostSimpleSchema
 from schemas.post_schema import PostSchema
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from extensions import db
-from werkzeug.security import check_password_hash, generate_password_hash
 from http import HTTPStatus
 from modelos.pais_model import Pais
 from marshmallow.exceptions import ValidationError
 
 
 
-
 post_bp = Blueprint('post', __name__)
 
 # Esquemas para Serializacion/Deserializacion
-post_schema = PostSchema()
+post_schema   = PostSchema()
 posts_schemas = PostSchema(many=True)
 
 
 #---------------------- Enpoint para consultar todos los post en la BD --------------------------#
 @post_bp.route('/posts', methods=['GET'])
-@jwt_required() 
+#@jwt_required() 
 def get_all_post():
   """
     Obtener todos los posts
@@ -44,9 +41,6 @@ def get_all_post():
                 "posts": posts_schemas.dump(posts.items, many=True),
                 "pagina_actual": posts.page,
                 "total_paginas": posts.pages}), HTTPStatus.OK
-
-
-
 
 
 #------------------------ Enpoint consultar un post con su id ----------------------#
@@ -85,9 +79,8 @@ def get_post_by_user(id_post):
 
 # ---------------------------  Endpoint para crear un nuevo Post -----------------------------#
 @post_bp.route('/create', methods=['POST'])
-@jwt_required()
-def crear_post():
-    
+#@jwt_required()
+def crear_post():  
   """
   Crear un nuevo post
 
@@ -155,8 +148,31 @@ def crear_post():
 
 #------------------------ Actualizar o Editar  un Post -----------------------------#
 @post_bp.route('/update/<string:id_post>', methods=['PUT'])
-@jwt_required()
+#@jwt_required()
 def actualizar_post(id_post):
+  """
+    Actualizar Post
+
+    Permite a un usuario autenticado editar un Post creado.
+    ---
+    tags:
+      - Posts
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/Post'
+    responses:
+      201:
+        description: Post actualizado exitosamente
+        schema:
+          $ref: '#/definitions/Post'
+      400:
+        description: Error al editar el post
+    """
 
   id_usuario = get_jwt_identity()
   post = db.session.get(Post, id_post)
@@ -190,7 +206,7 @@ def actualizar_post(id_post):
 
 # ------------------------ Endpoint para eliminar un Post ---------------------------- #
 @post_bp.route('/del/<string:id_post>', methods=['DELETE'])
-@jwt_required()
+#@jwt_required()
 def eliminar_post(id_post):
     """
     Eliminar un post

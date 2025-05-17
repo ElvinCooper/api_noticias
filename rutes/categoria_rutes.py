@@ -17,7 +17,7 @@ categorias_schemas = CategoriaSchema(many=True)
 
 # ----------------------------  Consultar todas las categorias  --------------------------------#
 @categorias_bp.route('/categorias', methods=['GET'])
-@jwt_required()
+#@jwt_required()
 def obtener_categorias():
     """
     Obtener todas las categorías
@@ -41,7 +41,7 @@ def obtener_categorias():
 
 # ----------------------------  Consultar una categoria por su ID  --------------------------------#
 @categorias_bp.route('/categoria/<string:id_categoria>', methods=['GET'])
-@jwt_required()
+#@jwt_required()
 def obtener_categoria_por_id(id_categoria):
     """
     Obtener una categoría por ID
@@ -64,9 +64,35 @@ def obtener_categoria_por_id(id_categoria):
       404:
         description: Categoría no encontrada
     """
-    categoria = Categoria.query.get_or_404(id_categoria)
+    categoria = Categoria.query.filter_by(id_categoria=id_categoria).first()
 
     if not categoria:
         return jsonify({"error": "Categoria no encontrada"}), HTTPStatus.NOT_FOUND
     
     return jsonify(categoria_schema.dump(categoria)), HTTPStatus.OK
+
+
+
+@categorias_bp.route('/crear', methods=['POST'])
+def crear_cateogoria():
+    
+    try:
+        data = request.get_json()
+        descripcion = data.get('descripcion')
+        
+
+        # verificar si existe la descripcion en la solicitud
+        if not descripcion:
+            return jsonify({"mensaje": "No se proporciono ninguna descripcion para la nueva categoria"}), HTTPStatus.BAD_REQUEST
+        
+        
+        # Creacion de la nueva categoria
+        nueva_categoria = Categoria(descripcion   = descripcion)
+        
+        db.session.add(nueva_categoria)
+        db.session.commit()      
+
+        return jsonify(categoria_schema.dump(nueva_categoria)), HTTPStatus.CREATED        
+    
+    except ValidationError as err:
+        return jsonify({"error": err.messages}), HTTPStatus.BAD_REQUEST

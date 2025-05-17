@@ -42,7 +42,7 @@ def get_usuarios():
 
 # --------------------------------- Consultar un usuario por su id ---------------------------------#
 @usuario_bp.route('/<string:id_usuario>', methods=['GET'])
-@jwt_required()
+#@jwt_required()
 def get_usuario(id_usuario):
     """
         Obtener usuario por ID
@@ -133,13 +133,37 @@ def crear_usuario():
         return jsonify({"error": err.messages}), HTTPStatus.BAD_REQUEST
 
 
+
 # --------------------------------- Actualizar datos de un usuario ---------------------------------#
 @usuario_bp.route('/update/<string:id_usuario>', methods=['PUT'])
-@jwt_required()
+#@jwt_required()
 def actualizar_usuario(id_usuario):
-    
+    """
+      Permite a un usuario autenticado actualizar sus datos como nombre, email y numero telefonico.
+
+      ---
+      tags:
+        - Usuarios
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ActualizarUsuario'
+      responses:
+        201:
+          description: Usuario actualizado exitosamente
+          schema:
+            $ref: '#/definitions/ActualizarUsuario'
+        404:
+          description: Usuario no encontrado
+        403:
+          description: No autorizado. Solo administradores pueden realizar esta acción.
+        400:
+          description: No hay datos proporcinados.  
+      """    
+     
     id_usuario = get_jwt_identity()
-    
 
     admin_id = get_jwt_identity()
     admin_user = db.session.get(Usuario, admin_id)
@@ -229,7 +253,7 @@ def login():
 
 #------------------ Endpoint para renovar los tokens -------------------#
 @usuario_bp.route('/refresh', methods=['POST'])
-@jwt_required(refresh=True) # solo acepta refresh tokens
+#@jwt_required(refresh=True) # solo acepta refresh tokens
 def refresh():
     """
     Renovación de tokens JWT (Access y Refresh)
@@ -275,7 +299,7 @@ def refresh():
 
 # ------------------ Endpoint para Logout -----------------------#
 @usuario_bp.route('/logout', methods=['POST'])
-@jwt_required()
+#@jwt_required()
 def logout():
   """
   Cerrar sesión
@@ -301,7 +325,7 @@ def logout():
 
  # ------------------------------ Enpoint para obtener el usuario logueado --------------------------------#
 @usuario_bp.route('/me', methods=['GET'])
-@jwt_required()
+#@jwt_required()
 def obtener_usuario_autenticado():
     """
     Obtener usuario autenticado
@@ -332,8 +356,8 @@ def obtener_usuario_autenticado():
 
 
 
-#-----------  Endpoint para validar si la solcitud viene del administrador -----------#
-@jwt_required()
+#-----------  Endpoint para validar si la solicitud viene del administrador -----------#
+#@jwt_required()
 def endpoint_solo_admin():
     claims = get_jwt()
     if claims.get("rol") != "admin":
