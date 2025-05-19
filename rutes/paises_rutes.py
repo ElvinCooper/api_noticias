@@ -13,6 +13,7 @@ pais_schema = PaisSchema()
 paises_schema = PaisSchema(many=True)
 
 
+
 #---------------- Endpoint para consultar todos los paises en la BD -------------------#
 @pais_bp.route('/paises', methods=['GET'])
 #@jwt_required()
@@ -58,9 +59,66 @@ def obtener_pais_por_id(id_pais):
         description: Pais filtrado
         schema:
            $ref: '#/definitions/Paises'
+      404:
+        description: Pais no encontrado.      
     """
     pais = Pais.query.filter_by(id_pais=id_pais).first()
     if not pais:
         return jsonify({"error": "Pais no encontrado"}), HTTPStatus.NOT_FOUND
     
     return jsonify(pais_schema.dump(pais)), HTTPStatus.OK    
+
+
+
+#----------------- Endpoint para registrar un nuevo pais en el sistema --------------------------#
+@pais_bp.post('/crear')
+#@jwt_required()
+def registar_pais():
+  """
+  Registrar un nuevo Pais en el sistema.
+
+  Este endpoint permiter registrar un nuevo pais indicando su codigo de area como id, nombre y abrebiatura de pais.
+  ---
+    tags:
+      - Paises
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/Paises' 
+    responses:
+      200:
+        description: Pais registrado exitosamente.
+        schema:
+           $ref: '#/definitions/Paises'   
+      400:
+        description: faltan un o varios campos por en la solicitud, favor revisar.     
+  """
+  try:
+    data = request.get_json()
+    id_pais = data.get('id_pais')
+    nombre = data.get('nombre')
+    abrebiatura_pais = data.get('abrebiatura_pais')
+    
+
+    # verificar si existen todos los campos en la solicitud.
+    if not all ([id_pais, nombre, abrebiatura_pais]):
+      return jsonify({"mensaje": "faltan un o varios campos por en la solicitud, favor revisar"}), HTTPStatus.BAD_REQUEST
+          
+    # validar que el id_pais no se este en la base de datos
+    if Pais.query.filter_by(id_pais=id_pais).first():
+      return jsonify({"error": "Ya existe un pais con ese id"})
+    
+    # Creacion de la nueva categoria
+    nuevo_pais = Pais(id_pais = id_pais,
+                      nombre  = nombre,
+                      abrebiatura_pais = abrebiatura_pais)
+    
+    db.session.add(nuevo_pais)
+    db.session.commit()      
+
+    return jsonify(pais_schema.dump(nuevo_pais)), HTTPStatus.CREATED        
+  
+  except ValidationError as err:
+    return jsonify({"error": err.messages}), HTTPStatus.BAD_REQUEST

@@ -40,30 +40,27 @@
     "Post": {
   "type": "object",
   "properties": {
-    "titulo": {
-      "type": "string"
-    },
-    "contenido": {
-      "type": "string"
-    },
-    "id_pais": {
-      "type": "string",
-      "description": "UUID del país al que pertenece el post"
-    },
-    "visible": {
-      "type": "boolean",
-      "default": true
-    },
-    "status": {
-      "type": "boolean",
-      "default": true
-    },
-    "categorias": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
+    "titulo": {"type": "string"},
+    "contenido": {"type": "string"},
+    "id_pais": {"type": "string",
+     "description": "UUID del país al que pertenece el post"},
+    "visible": {"type": "boolean",
+        "default": true},
+    "status": {"type": "boolean",
+      "default": true},
+    "categorias": {"type": "array",
+      "items": {"type": "string"},
       "description": "Lista de IDs de categorías asociadas al post"
+    },
+    "Post_categorias": {
+      "type": "object",
+      "properties": {
+        "id_post": 
+        {"type": "string"},
+        "id_categoria": 
+        {"type": "string"}
+      },
+      "description": "Lista de parejas Post_Categoria"
     }
   },
   "required": ["titulo", "contenido", "id_pais"]
@@ -86,10 +83,16 @@
       "properties": {
         "id_categoria": {"type": "string"},
         "descripcion":  {"type": "string"},
-        "id_multimedia": {
-          "type": "string",
+        "id_multimedia": {"type": "string",
           "nullable": true
         }  
+      }
+    },
+    "RegistroCategoria": {
+      "type": "object",
+      "properties":
+      { "id_categoria": {"type": "string"},
+        "descripcion": {"type": "string"}
       }
     },
     
@@ -109,9 +112,9 @@
     "Paises": {
       "type": "object",
       "properties": {
-        "id": { "type": "string" },
-        "nombre_pais": { "type": "string" },
-        "abrebiatura_pais": { "type": "string" },
+        "id_pais": {"type": "string" },
+        "nombre_pais": {"type": "string" },
+        "abrebiatura_pais": {"type": "string" },
         "id_multimedia": {"type": "string"}        
       }
     }

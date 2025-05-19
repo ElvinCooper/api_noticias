@@ -73,9 +73,34 @@ def obtener_categoria_por_id(id_categoria):
 
 
 
+
+#----------------- Endpoint para crear un nueva categoria --------------------------#
 @categorias_bp.route('/crear', methods=['POST'])
+@jwt_required()
 def crear_cateogoria():
-    
+    """
+    Crear una nueva categoría
+
+    Este endpoint permiter crear una nueva categoria indicando su descripcion.
+    ---
+    tags:
+      - Categorías
+    parameters:
+    - name: body
+      in: body
+      required: true
+      schema:
+        $ref: '#/definitions/RegistroCategoria'
+    responses:
+      200:
+        description: Nueva categoría creada.
+        schema:
+          type: array
+          items:
+            $ref: '#/definitions/RegistroCategoria'
+      400:
+        description: Error al crear la categoria      
+    """
     try:
         data = request.get_json()
         descripcion = data.get('descripcion')
@@ -87,7 +112,7 @@ def crear_cateogoria():
         
         
         # Creacion de la nueva categoria
-        nueva_categoria = Categoria(descripcion   = descripcion)
+        nueva_categoria = Categoria(descripcion = descripcion)
         
         db.session.add(nueva_categoria)
         db.session.commit()      
