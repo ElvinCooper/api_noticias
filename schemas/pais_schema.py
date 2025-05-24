@@ -9,14 +9,14 @@ class PaisSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Pais
         load_instance = True
-        exclude = ('multimedia',)
+        
 
 
     id_pais = fields.Str(dump_only=True)
     nombre_pais      = fields.Str(required=True, validate=validate.Length(max=(50)))
     abrebiatura_pais = fields.Str(required=True, validate=validate.Length(3))
     id_multimedia    = fields.Str(allow_none=True, load_only=True)
-    multimedia       = fields.Nested('MultimediaSchema', exclude=('pais', 'categoria'), dump_only=True)
+    
 
     @post_load
     def make_pais(self, data, **kwargs):

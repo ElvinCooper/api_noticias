@@ -84,16 +84,20 @@
         "id_categoria": {"type": "string"},
         "descripcion":  {"type": "string"},
         "id_multimedia": {"type": "string",
-          "nullable": true
+        "nullable": true,
+        "eslogan": {"type": "string"}
+          
         }  
       }
     },
     "RegistroCategoria": {
       "type": "object",
-      "properties":
-      { "id_categoria": {"type": "string"},
-        "descripcion": {"type": "string"}
-      }
+      "properties": {
+        "id_categoria": { "type": "string" },
+        "descripcion":  { "type": "string" },
+        "eslogan":      { "type": "string" }
+      },
+      "required": ["descripcion"]
     },
     
     "RefreshTokenResponse": {
@@ -116,6 +120,16 @@
         "nombre_pais": {"type": "string" },
         "abrebiatura_pais": {"type": "string" },
         "id_multimedia": {"type": "string"}        
+      }
+    },
+
+    "Multimedia": {
+      "type": "object",
+      "properties": {
+        "id_multimedia": {"type": "string" },
+        "nombre_archivo": {"type": "string" },
+        "tipo_archivo": {"type": "string" },
+        "url_multimedia_alt": {"type": "string"}        
       }
     }
   }  

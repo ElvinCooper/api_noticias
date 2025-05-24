@@ -8,15 +8,12 @@ class MultimediaSchema(SQLAlchemyAutoSchema):
         model = Multimedia
         load_instance = True
         #include_relationships = True
-        exclude = ('categoria', 'pais')
+       
 
     id_multimedia  = fields.Str(dump_only=True)  # UUID como string
     nombre_archivo = fields.Str(allow_none=True, validate=validate.Length(50))
-    tipo_entidad   = fields.Str(allow_none=True, validate=validate.Length(20))
+    url_multimedia_alt = fields.Str(allow_none=True)
     tipo_archivo   = fields.Str(required=True,   validate=validate.Length(20))
-    categoria = fields.Nested("CategoriaSchema", exclude=('multimedia',), dump_only=True)
-    pais      = fields.Nested("PaisSchema",      exclude=('multimedia',), dump_only=True)
-    
     
     
     @post_load

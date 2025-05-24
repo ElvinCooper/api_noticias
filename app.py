@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_cors import CORS
+#from flask_smorest import Api
 from extensions import init_extensions, db, migrate
 from flask_migrate import Migrate
 from dotenv import load_dotenv
@@ -12,6 +13,7 @@ from rutes.favorito_rutes import favorito_bp
 from rutes.categoria_rutes import categorias_bp
 from rutes.paises_rutes import pais_bp
 from rutes.post_categoria_rutes import post_cat_bp
+from rutes.multimedia_rutes import multimedia_bp
 import json
 from sqlite_config import enable_sqlite_foreign_keys 
 from datetime import timedelta
@@ -105,6 +107,7 @@ def create_app(testing=True):
     app.register_blueprint(categorias_bp, url_prefix='/api')
     app.register_blueprint(pais_bp, url_prefix='/api')
     app.register_blueprint(post_cat_bp, url_prefix='/api')
+    app.register_blueprint(multimedia_bp, url_prefix='/api')
 
 
     from auth.jwt_callbacks import jwt

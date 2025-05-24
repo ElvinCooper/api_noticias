@@ -2,7 +2,9 @@
 venv/
 env/
 infonovax/
+infonavax/
 api_noticias/Lib
+api_noticias/
 
 # Archivos de configuración y entorno
 .env

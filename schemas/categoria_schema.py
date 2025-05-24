@@ -8,12 +8,13 @@ class CategoriaSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Categoria
         load_instance = True
-        exclude = ('multimedia',)
+        
 
     id_categoria  = fields.Str(dump_only=True)
     descripcion   = fields.Str(required=True, validate=validate.Length(50))
+    eslogan       = fields.Str(allow_none=True)
     id_multimedia = fields.Str(allow_none=True, load_only=True)
-    multimedia    = fields.Nested("MultimediaSchema", exclude=('categoria', 'pais'), dump_only=True)
+    
 
     @post_load
     def make_categoria(self, data, **kwargs):

@@ -1,4 +1,5 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, abort
+from flask.views import MethodView
 from extensions import db
 from http import HTTPStatus
 from marshmallow.exceptions import ValidationError
@@ -9,7 +10,8 @@ from flask_jwt_extended import jwt_required
 
 
 
-categorias_bp = Blueprint('categorias', __name__)
+#categorias_bp = Blueprint('categorias', __name__
+categorias_bp = Blueprint("categorias", __name__, description="Operaciones con categorías")
 categoria_schema = CategoriaSchema()
 categorias_schemas = CategoriaSchema(many=True)
 
@@ -73,51 +75,22 @@ def obtener_categoria_por_id(id_categoria):
 
 
 
+@categorias_bp.route("/categoria")
+class CategoriaList(MethodView):
+    @jwt_required()
+    @categorias_bp.arguments(CategoriaSchema)
+    @categorias_bp.response(201, CategoriaSchema)
+    def post(self, categoria_data):
+        # Validación: verificar si ya existe esa descripción
+        if Categoria.query.filter_by(descripcion=categoria_data["descripcion"]).first():
+            abort(400, message="Ya existe una categoría con esa descripción.")
 
-#----------------- Endpoint para crear un nueva categoria --------------------------#
-@categorias_bp.route('/crear', methods=['POST'])
-@jwt_required()
-def crear_cateogoria():
-    """
-    Crear una nueva categoría
+        nueva_categoria = Categoria(            
+            descripcion=categoria_data["descripcion"],
+            id_multimedia=categoria_data.get("id_multimedia"),
+            eslogan=categoria_data.get("eslogan")        )
 
-    Este endpoint permiter crear una nueva categoria indicando su descripcion.
-    ---
-    tags:
-      - Categorías
-    parameters:
-    - name: body
-      in: body
-      required: true
-      schema:
-        $ref: '#/definitions/RegistroCategoria'
-    responses:
-      200:
-        description: Nueva categoría creada.
-        schema:
-          type: array
-          items:
-            $ref: '#/definitions/RegistroCategoria'
-      400:
-        description: Error al crear la categoria      
-    """
-    try:
-        data = request.get_json()
-        descripcion = data.get('descripcion')
-        
-
-        # verificar si existe la descripcion en la solicitud
-        if not descripcion:
-            return jsonify({"mensaje": "No se proporciono ninguna descripcion para la nueva categoria"}), HTTPStatus.BAD_REQUEST
-        
-        
-        # Creacion de la nueva categoria
-        nueva_categoria = Categoria(descripcion = descripcion)
-        
         db.session.add(nueva_categoria)
-        db.session.commit()      
+        db.session.commit()
 
-        return jsonify(categoria_schema.dump(nueva_categoria)), HTTPStatus.CREATED        
-    
-    except ValidationError as err:
-        return jsonify({"error": err.messages}), HTTPStatus.BAD_REQUEST
+        return nueva_categoria
