@@ -1,4 +1,5 @@
-from flask import Blueprint, request, jsonify
+from flask import request, jsonify
+from flask_smorest import Blueprint
 from modelos.post_model import Post
 from modelos.post_categoria_model import PostCategoria
 from modelos.categoria_model import Categoria
@@ -11,7 +12,7 @@ from marshmallow.exceptions import ValidationError
 
 
 
-post_bp = Blueprint('post', __name__)
+post_bp = Blueprint('post', __name__, description='Operaciones con Post')
 
 # Esquemas para Serializacion/Deserializacion
 post_schema   = PostSchema()

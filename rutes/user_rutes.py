@@ -1,4 +1,5 @@
-from flask import Blueprint, request, jsonify
+from flask import request, jsonify
+from flask_smorest import Blueprint
 from modelos.user_model import Usuario
 from schemas.user_simple_schema import UserSimpleSchema
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, create_refresh_token
@@ -12,7 +13,7 @@ from modelos.TokenBlocklist_model import TokenBlocklist
 
 
 
-usuario_bp  = Blueprint('usuarios', __name__)
+usuario_bp  = Blueprint('usuarios', __name__, description='Operaciones con Usuarios')
 usuario_schema = UserSimpleSchema()
 usuarios_schema = UserSimpleSchema(many=True)
 

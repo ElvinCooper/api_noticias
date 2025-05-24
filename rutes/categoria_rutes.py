@@ -1,4 +1,5 @@
-from flask import Blueprint, request, jsonify, abort
+from flask import request, jsonify, abort
+from flask_smorest import Blueprint
 from flask.views import MethodView
 from extensions import db
 from http import HTTPStatus
@@ -11,7 +12,7 @@ from flask_jwt_extended import jwt_required
 
 
 #categorias_bp = Blueprint('categorias', __name__
-categorias_bp = Blueprint("categorias", __name__, description="Operaciones con categorías")
+categorias_bp = Blueprint('categorias', __name__, description="Operaciones con Categorias")
 categoria_schema = CategoriaSchema()
 categorias_schemas = CategoriaSchema(many=True)
 
@@ -74,23 +75,35 @@ def obtener_categoria_por_id(id_categoria):
     return jsonify(categoria_schema.dump(categoria)), HTTPStatus.OK
 
 
+from flask.views import MethodView
 
 @categorias_bp.route("/categoria")
 class CategoriaList(MethodView):
-    @jwt_required()
     @categorias_bp.arguments(CategoriaSchema)
     @categorias_bp.response(201, CategoriaSchema)
+    # @jwt_required()  # Descomenta si lo necesitas
     def post(self, categoria_data):
-        # Validación: verificar si ya existe esa descripción
-        if Categoria.query.filter_by(descripcion=categoria_data["descripcion"]).first():
+        if Categoria.query.filter_by(descripcion=categoria_data.descripcion).first():
             abort(400, message="Ya existe una categoría con esa descripción.")
 
-        nueva_categoria = Categoria(            
-            descripcion=categoria_data["descripcion"],
-            id_multimedia=categoria_data.get("id_multimedia"),
-            eslogan=categoria_data.get("eslogan")        )
-
-        db.session.add(nueva_categoria)
+        db.session.add(categoria_data)
         db.session.commit()
 
-        return nueva_categoria
+        return categoria_data
+
+
+
+
+# @blp.arguments(CategoriaSchema)
+# @blp.response(201, CategoriaSchema)
+# @jwt_required()
+# def post(self, categoria_data):
+#     # categoria_data ya es una instancia de Categoria
+
+#     if Categoria.query.filter_by(descripcion=categoria_data.descripcion).first():
+#         abort(400, message="Ya existe una categoría con esa descripción.")
+
+#     db.session.add(categoria_data)
+#     db.session.commit()
+
+#     return categoria_data

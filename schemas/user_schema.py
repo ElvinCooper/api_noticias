@@ -2,7 +2,7 @@ from marshmallow import fields, validate
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, auto_field
 from modelos.user_model import Usuario
 from schemas.rol_schema import RolSchema
-
+from extensions import db
 
 
 class UserSchema(SQLAlchemyAutoSchema):
@@ -10,6 +10,7 @@ class UserSchema(SQLAlchemyAutoSchema):
         model = Usuario
         load_instance = True
         include_relationships = True
+        sqla_session = db.session
 
     id_usuario     = fields.String(dump_only=True)
     nombre         = auto_field(required=True, validate=validate.Length(min=1, max=60))

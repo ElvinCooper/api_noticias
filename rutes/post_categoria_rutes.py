@@ -1,4 +1,5 @@
-from flask import Blueprint, request, jsonify
+from flask import request, jsonify
+from flask_smorest import Blueprint
 from http import HTTPStatus
 from schemas.post_categoria_schema import PostCategoriaSchema
 from modelos.post_categoria_model import PostCategoria
@@ -6,7 +7,7 @@ from flask_jwt_extended import jwt_required
 
 
 
-post_cat_bp = Blueprint('postCategoria', __name__)
+post_cat_bp = Blueprint('postCategoria', __name__, description='Operaciones con PostCategoria')
 post_cat_schema = PostCategoriaSchema()
 post_cats_schemas = PostCategoriaSchema(many=True)
 

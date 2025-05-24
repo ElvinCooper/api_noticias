@@ -5,6 +5,7 @@ infonovax/
 infonavax/
 api_noticias/Lib
 api_noticias/
+instance/
 
 # Archivos de configuración y entorno
 .env

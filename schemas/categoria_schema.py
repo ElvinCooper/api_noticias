@@ -1,13 +1,14 @@
 from marshmallow import fields, validate, post_load
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from modelos.categoria_model import Categoria
-
+from extensions import db
 
 
 class CategoriaSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Categoria
         load_instance = True
+        sqla_session = db.session
         
 
     id_categoria  = fields.Str(dump_only=True)
@@ -16,9 +17,4 @@ class CategoriaSchema(SQLAlchemyAutoSchema):
     id_multimedia = fields.Str(allow_none=True, load_only=True)
     
 
-    @post_load
-    def make_categoria(self, data, **kwargs):
-        return Categoria(
-            descripcion=data['descripcion'],
-            id_multimedia=data.get('id_multimedia')
-        )
+   

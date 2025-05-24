@@ -9,8 +9,8 @@ ma = Marshmallow()
 jwt = JWTManager()
 migrate = Migrate()
 
-
 def init_extensions(app):
     db.init_app(app)
     ma.init_app(app)
     jwt.init_app(app)
+    

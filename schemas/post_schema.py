@@ -7,7 +7,7 @@ from schemas.favorito_schema import FavoritoSchema
 from schemas.simple.pais_simple_schema import PaisSimpleSchema
 from schemas.categoria_schema import CategoriaSchema
 from schemas.multimedia_schema import MultimediaSchema
-
+from extensions import db
 
 
 class PostSchema(SQLAlchemyAutoSchema):
@@ -33,13 +33,13 @@ class PostSchema(SQLAlchemyAutoSchema):
    
     status    = fields.Boolean(load_default=True) 
 
-    #@post_load
-    def make_post(self, data, **kwargs):
-        # Crear instancia de Post asignando campos manualmente
-        return Post(
-            titulo=data['titulo'],
-            contenido=data['contenido'],
-            id_usuario=data['id_usuario'],
-            id_pais=data['id_pais'],
-            visible=data.get('visible', True)
-        )
+    # #@post_load
+    # def make_post(self, data, **kwargs):
+    #     # Crear instancia de Post asignando campos manualmente
+    #     return Post(
+    #         titulo=data['titulo'],
+    #         contenido=data['contenido'],
+    #         id_usuario=data['id_usuario'],
+    #         id_pais=data['id_pais'],
+    #         visible=data.get('visible', True)
+    #     )

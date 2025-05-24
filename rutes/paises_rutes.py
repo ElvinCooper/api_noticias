@@ -1,4 +1,5 @@
-from flask import Blueprint, request, jsonify
+from flask import request, jsonify
+from flask_smorest import Blueprint
 from extensions import db
 from http import HTTPStatus
 from modelos.pais_model import Pais
@@ -7,7 +8,7 @@ from schemas.pais_schema import PaisSchema
 from flask_jwt_extended import jwt_required
 
 
-pais_bp = Blueprint('pais', __name__)
+pais_bp = Blueprint('pais', __name__, description='Operaciones con Pais')
 
 pais_schema = PaisSchema()
 paises_schema = PaisSchema(many=True)

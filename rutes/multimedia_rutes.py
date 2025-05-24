@@ -1,12 +1,14 @@
-from flask import Blueprint, request, jsonify
+from flask import request, jsonify, abort
+from flask_smorest import Blueprint
 from extensions import db
 from http import HTTPStatus
 from modelos.multimedia_model import Multimedia
 from marshmallow.exceptions import ValidationError
 from schemas.pais_schema import MultimediaSchema
 from flask_jwt_extended import jwt_required
+from flask.views import MethodView
 
-multimedia_bp = Blueprint('multimedia', __name__)
+multimedia_bp = Blueprint('multimedia', __name__, description='Operaciones con Multimedia')
 
 multimedia_schema   = MultimediaSchema()
 multimedias_schemas = MultimediaSchema(many=True)
@@ -71,3 +73,23 @@ def get_one(id_multimedia):
         return jsonify({"mensaje": "No existe un recurso con ese id"})
     
     return jsonify(multimedia_schema.dump(multimedia)), HTTPStatus.OK
+
+
+
+@multimedia_bp.route("/multimedia")
+class MultimediaList(MethodView):
+    #@jwt_required()
+    @multimedia_bp.arguments(MultimediaSchema)
+    @multimedia_bp.response(201, MultimediaSchema)
+    def post(self, data):
+        # Verificar si ya existe uno con el mismo nombre
+        if Multimedia.query.filter_by(nombre_archivo=data.nombre_archivo).first():
+            abort(400, message="Ya existe un archivo con ese nombre.")
+
+        # # Asignar ID si no fue incluido
+        # if not data.id_multimedia:
+        #     data.id_multimedia = str(uuid.uuid4())
+
+        db.session.add(data)
+        db.session.commit()
+        return data

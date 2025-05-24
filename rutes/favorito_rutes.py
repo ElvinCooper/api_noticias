@@ -1,4 +1,5 @@
-from flask import Blueprint, request, jsonify
+from flask import request, jsonify
+from flask_smorest import Blueprint
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from modelos.favorito_model import Favorito
 from schemas.simple.post_simple_schema import PostSimpleSchema
@@ -6,7 +7,7 @@ from modelos.post_model import Post
 from extensions import db
 from http import HTTPStatus
 
-favorito_bp = Blueprint('favoritos', __name__)
+favorito_bp = Blueprint('favoritos', __name__, description='Operaciones con Favoritos')
 post_schema = PostSimpleSchema(many=True)
 
 
