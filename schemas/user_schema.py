@@ -22,4 +22,93 @@ class UserSchema(SQLAlchemyAutoSchema):
     post           = fields.Nested("PostSchema", many=True, dump_only=True)  # Lista de post relacionados
     favoritos      = fields.List(fields.Nested("FavoritoSchema", exclude=('usuario',))) # Lista de favoritos relacionados
 
+
+# ------------------------  Schema para respuesta a peticion de listar usuarios ---------------------------------#    
+class UserSimpleSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = Usuario
+        load_instance = True
+        sqla_session = db.session
+        include_fk = True
+
+    id_usuario = auto_field(dump_only=True)
+    nombre = auto_field()
+    email = auto_field()
+    rol = auto_field()
+
+
+
+# ------------------------  Schema para registrar un usuario ---------------------------------#    
+class UserRegisterSchema(SQLAlchemyAutoSchema):
+    nombre = fields.String(required=True, validate=validate.Length(min=1, max=60))
+    email = fields.Email(required=True)
+    password = fields.String(required=True, validate=validate.Length(min=8, max=25), load_only=True)    
+
+
+
+
+# ------------------------  Schema para actualizacion ---------------------------------#    
+class UserUpdateSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = Usuario
+        load_instance = True
+        include_relationships = False  # No incluir relaciones en actualización
+        sqla_session = db.session
+        partial = True  # Para actualizaciones parciales
     
+    # Campos que se pueden actualizar
+    nombre = auto_field(required=False, validate=validate.Length(min=1, max=60))
+    email = fields.Email(required=False)
+    telefono = auto_field(required=False, validate=validate.Length(max=20))
+    password = auto_field(required=False, validate=validate.Length(min=8, max=25), load_only=True)
+    
+    # Campos que no se pueden actualizar
+    id_usuario = fields.String(dump_only=True)
+    id_rol = fields.String(dump_only=True)  # El rol no se actualiza por seguridad
+    fecha_registro = fields.Date(dump_only=True)
+
+
+
+
+# ------------------------  Schema para recibir datos de Login ---------------------------------#    
+class LoginSchema(SQLAlchemyAutoSchema):
+    email = fields.Email(required=True)
+    password = fields.String(required=True, validate=validate.Length(min=1))
+
+
+# ------------------------  Schema para para respuesta de Login exitoso ---------------------------------#    
+class LoginResponseSchema(SQLAlchemyAutoSchema):
+    access_token = fields.String()
+    refresh_token = fields.String(required=False)  # Si usas refresh tokens
+    usuario = fields.Nested(UserSchema, only=('id_usuario', 'nombre', 'email', 'rol'))
+    message = fields.String()
+    
+
+# --------------------- Schema para la respuesta del refresh token ---------------------------------------#
+class TokenRefreshResponseSchema(SQLAlchemyAutoSchema):
+    acces_token = fields.String(required=True)
+    refresh_token = fields.String(required=True)
+
+
+# --------------------- Schema para la respuesta del Logout ---------------------------------------#
+class LogoutResponseSchema(SQLAlchemyAutoSchema):
+    mensaje = fields.String()
+
+
+# --------------------- Schema para la respuesta del usuario autenticado ---------------------------------------#
+class MeResponseSchema(SQLAlchemyAutoSchema):
+    id_usuario = fields.String()
+    nombre = fields.String()
+    email = fields.Email()
+    rol = fields.Nested("RolSchema", only=("descripcion",))
+
+
+# --------------------- Schema para respuesta del endpoint SoloAdmin --------------------------#
+
+class AdminMeSchema(SQLAlchemyAutoSchema):
+    id_usuario = fields.String()
+    nombre = fields.String()
+    email = fields.Email()
+    rol = fields.Nested(RolSchema, only=("descripcion",))
+    fecha_registro = fields.Date()
+

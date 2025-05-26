@@ -6,8 +6,7 @@ from marshmallow import fields
 class PaisSimpleSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Pais
-        load_instance = True
-        exclude = ('multimedia',)
+        load_instance = True        
 
     id_pais = fields.Str()
     nombre_pais = fields.Str()

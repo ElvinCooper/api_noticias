@@ -77,7 +77,7 @@ def obtener_categoria_por_id(id_categoria):
 
 from flask.views import MethodView
 
-@categorias_bp.route("/categoria")
+@categorias_bp.route("/api/categoria")
 class CategoriaList(MethodView):
     @categorias_bp.arguments(CategoriaSchema)
     @categorias_bp.response(201, CategoriaSchema)
@@ -90,20 +90,3 @@ class CategoriaList(MethodView):
         db.session.commit()
 
         return categoria_data
-
-
-
-
-# @blp.arguments(CategoriaSchema)
-# @blp.response(201, CategoriaSchema)
-# @jwt_required()
-# def post(self, categoria_data):
-#     # categoria_data ya es una instancia de Categoria
-
-#     if Categoria.query.filter_by(descripcion=categoria_data.descripcion).first():
-#         abort(400, message="Ya existe una categoría con esa descripción.")
-
-#     db.session.add(categoria_data)
-#     db.session.commit()
-
-#     return categoria_data

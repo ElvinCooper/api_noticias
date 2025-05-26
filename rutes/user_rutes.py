@@ -1,7 +1,8 @@
-from flask import request, jsonify
+from flask import request, jsonify, abort
 from flask_smorest import Blueprint
 from modelos.user_model import Usuario
 from schemas.user_simple_schema import UserSimpleSchema
+from schemas.user_schema import UserSchema, UserUpdateSchema
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, create_refresh_token
 from extensions import db
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -10,6 +11,7 @@ from marshmallow.exceptions import ValidationError
 from datetime import timedelta
 from flask_jwt_extended import get_jwt
 from modelos.TokenBlocklist_model import TokenBlocklist
+from flask.views import MethodView
 
 
 
@@ -19,349 +21,205 @@ usuarios_schema = UserSimpleSchema(many=True)
 
 
 
-
 # ----------------------------  Consultar todos los usuarios  --------------------------------#
-@usuario_bp.route('/users', methods=['GET'])
-def get_usuarios():
-    """
-    Obtener todos los usuarios
-
-    Este endpoint retorna la lista de todos los usuarios registrados en el sistema.
-    ---
-    tags:
-      - Usuarios
-    responses:
-      200:
-        description: Lista de usuarios
-        schema:
-           $ref: '#/definitions/Usuario'
-    """
-    usuarios = Usuario.query.all()
-    return jsonify(usuarios_schema.dumps(usuarios)), HTTPStatus.OK
+@usuario_bp.route('/usuarios')
+class ListarUsuarios(MethodView):
+    @jwt_required()
+    @usuario_bp.response(HTTPStatus.OK, UserSimpleSchema)
+    def get(self):
+        usuarios = Usuario.query.all()
+        return usuarios 
 
 
 
 # --------------------------------- Consultar un usuario por su id ---------------------------------#
-@usuario_bp.route('/<string:id_usuario>', methods=['GET'])
-#@jwt_required()
-def get_usuario(id_usuario):
-    """
-        Obtener usuario por ID
+@usuario_bp.route('/usuarios/<string:id_usuario>')
+class ListarUsuarios(MethodView):
+    @jwt_required()    
+    @usuario_bp.response(HTTPStatus.OK, UserSimpleSchema)
+    def get(self, id_usuario):
+        
+      usuario = Usuario.query.filter_by(id_usuario=id_usuario).first()
+      if not usuario:
+          abort(HTTPStatus.NOT_FOUND, message="No existe un usuario con este id")
 
-        Retorna los datos de un usuario específico usando su ID.
-        ---
-        tags:
-          - Usuarios
-        parameters:
-          - name: id_usuario
-            in: path
-            type: string
-            required: true
-            description: ID del usuario a consultar
-        responses:
-          200:
-            description: Usuario encontrado
-            schema:
-              $ref: '#/definitions/Usuario'
-          404:
-            description: Usuario no encontrado
-        """    
-    usuario = Usuario.query.get_or_404(id_usuario)
-    if not usuario:
-        return jsonify({"error": "Usuario no encontrado"}), HTTPStatus.NOT_FOUND
-    
-    return jsonify(usuario_schema.dumps(usuario)), HTTPStatus.OK
-
+      return [usuario]
 
 
 # ---------------------------  Endpoint para Registrar usuarios -----------------------------#
-@usuario_bp.route('/registro', methods=['POST'])
-def crear_usuario():
-    """
-      Registro de nuevo usuario
+from schemas.user_schema import UserRegisterSchema
+@usuario_bp.route("/registrar")
+class UsuarioList(MethodView):
+   @usuario_bp.arguments(UserRegisterSchema)
+   @usuario_bp.response(HTTPStatus.CREATED, UserRegisterSchema)
+   def post(self, data_usuario):
+      if Usuario.query.filter_by(email=data_usuario.email).first():
+         abort(HTTPStatus.BAD_REQUEST, message="Ya existe un usuario con ese email.")
 
-      Permite registrar un nuevo usuario con nombre, email, contraseña e ID de rol.
-      ---
-      tags:
-        - Usuarios
-      parameters:
-        - name: body
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/RegistroUsuario'
-      responses:
-        201:
-          description: Usuario creado exitosamente
-          schema:
-            $ref: '#/definitions/RegistroUsuario'
-        400:
-          description: Datos inválidos o incompletos
-      """
-    try:
-        data = request.get_json()
-        nombre = data.get('nombre')
-        email  = data.get('email')
-        telefono = data.get('telefono')
-        password = data.get('password')
-        id_rol = data.get('id_rol')
+      # hashear el password antes de guardar
+      data_usuario.password = generate_password_hash(data_usuario.password)
 
-        # Verificar si todos los campos existen
-        if not all([nombre, email, password, id_rol]):
-            return jsonify({"mensaje": "Faltan alguno de los campos, favor revisar"}), HTTPStatus.BAD_REQUEST
-        
-        # Validar duplicados
-        if Usuario.query.filter_by(email = email).first():
-            return jsonify({"mensaje": "Ya existe un usuario con este email"}), HTTPStatus.BAD_REQUEST
-        
-        # Creacion del usuario
-        nuevo_usuario = Usuario(nombre   = nombre,
-                                email    = email,
-                                telefono = telefono,
-                                password = generate_password_hash(password),
-                                id_rol   = id_rol)
-        
-        db.session.add(nuevo_usuario)
-        db.session.commit()
+      db.session.add(data_usuario)
+      db.session.commit()
 
-        # Futura Logico de envio de correo en esta parte
-          
+      return data_usuario
 
-
-        return jsonify(usuario_schema.dump(nuevo_usuario)), HTTPStatus.CREATED        
-    
-    except ValidationError as err:
-        return jsonify({"error": err.messages}), HTTPStatus.BAD_REQUEST
 
 
 
 # --------------------------------- Actualizar datos de un usuario ---------------------------------#
-@usuario_bp.route('/update/<string:id_usuario>', methods=['PUT'])
-#@jwt_required()
-def actualizar_usuario(id_usuario):
-    """
-      Permite a un usuario autenticado actualizar sus datos como nombre, email y numero telefonico.
+@usuario_bp.route('/usuarios/<string:id_usuario>')
+class UserUpdate(MethodView):
+  @usuario_bp.arguments(UserUpdateSchema)
+  @usuario_bp.response(HTTPStatus.OK, UserSchema) 
+  @jwt_required()
+  def put(self, data_usuario, id_usuario):
+      usuario = Usuario.query.get_or_404(id_usuario, description="Usuario no encontrado")      
 
-      ---
-      tags:
-        - Usuarios
-      parameters:
-        - name: body
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/ActualizarUsuario'
-      responses:
-        201:
-          description: Usuario actualizado exitosamente
-          schema:
-            $ref: '#/definitions/ActualizarUsuario'
-        404:
-          description: Usuario no encontrado
-        403:
-          description: No autorizado. Solo administradores pueden realizar esta acción.
-        400:
-          description: No hay datos proporcinados.  
-      """    
+       # crear la instancia de actualizacion
+      usuario_update_schema = UserUpdateSchema()
+      datos_actualizados = usuario_update_schema.load(data_usuario)         
+
+      if 'email' in data_usuario:
+        nuevo_email = data_usuario['email']
+        # Verificar si ya existe otro usuario con ese email
+        existing_user = Usuario.query.filter_by(email=nuevo_email).first()
+        
+        if existing_user:
+            # Si existe, verificar que no sea el mismo usuario
+            if existing_user.id_usuario != id_usuario:
+                abort(HTTPStatus.BAD_REQUEST, message="Ya existe un usuario con ese email")
+
      
-    id_usuario = get_jwt_identity()
 
-    admin_id = get_jwt_identity()
-    admin_user = db.session.get(Usuario, admin_id)
-    
-    if not admin_user or admin_user.rol != 'admin':
-      return jsonify({"error": "No autorizado. Solo administradores pueden realizar esta acción."}), HTTPStatus.FORBIDDEN
-    
-    usuario = db.session.get(Usuario, id_usuario)
+      # actualizar los campo del modelo
+      usuario.nombre   = datos_actualizados.get('nombre', usuario.nombre)
+      usuario.email    = datos_actualizados.get('email',   usuario.email)
+      usuario.telefono = datos_actualizados.get('telefono', usuario.telefono)
 
-    if not usuario:
-        return jsonify({"error": "Usuario no encontrado"}), HTTPStatus.NOT_FOUND
-    
-    try:
-      json_data = request.get_json()
-      if not json_data:
-        return jsonify({"mensaje":"No hay datos proporcinados"}), HTTPStatus.BAD_REQUEST
-      
-      # verificar si ya existe un usuario con el mismo email
-      if Usuario.query.filter_by(email=json_data.email).first():        
-        return jsonify({"mensaje": "Ya existe un contacto con este email"}), HTTPStatus.BAD_REQUEST
-      
-      datos_actualizados = usuario_schema.load(json_data, session=db.session, partial=True)
 
-      db.session.commit()
-      return jsonify(usuario_schema.dump(datos_actualizados)), HTTPStatus.OK
+      try:
+          db.session.commit()
+          return usuario
+      except ValidationError as err:
+          db.session.rollback()
+          abort (HTTPStatus.INTERNAL_SERVER_ERROR, message="Error al actualizar el usuario")
 
-    except ValidationError as e:
-      return jsonify({"error": e.messages}), HTTPStatus.BAD_REQUEST
-    except Exception as err:
-      return jsonify({"error": str(err)}), HTTPStatus.BAD_REQUEST  
 
 
 
 # -------------------------  Endpoint para hacer Login ------------------------------------#
-@usuario_bp.route('/login', methods=['POST'])
-def login():
-    """
-    Login de usuario
+from schemas.user_schema import LoginResponseSchema, LoginSchema
+@usuario_bp.route('/login')
+class Usuario_Login(MethodView):
+    @usuario_bp.arguments(LoginResponseSchema)
+    @usuario_bp.response(HTTPStatus.OK, LoginResponseSchema)    
+    def post(self, data_login):
+        # crear instancia del schema
+        login_schema = LoginSchema()
+        datos_login = login_schema.load(data_login)
 
-    Permite a un usuario autenticarse usando su email y contraseña. Retorna un token JWT si es exitoso.
-    ---
-    tags:
-      - Usuarios
-    parameters:
-      - name: body
-        in: body
-        required: true
-        schema:
-         $ref: '#/definitions/LoginUsuario'
-    responses:
-      200:
-        description: Login exitoso con token JWT
-        schema:
-          $ref: '#/definitions/LoginUsuario'
-      401:
-        description: Credenciales inválidas
-      404:
-        description: Usuario no encontrado
-    """
-    json_data = request.get_json()
-    email    = json_data.get('email')
-    password = json_data.get('password')
+        # Buscar usuario por email
+        usuario = Usuario.query.filter_by(email=data_login['email']).first()
+        if not usuario:
+            abort(HTTPStatus.UNAUTHORIZED, message="Credenciales Invalidas")
 
+        try:
+            
+          # Generar token de autenticacion
+          additional_claims = {"rol": usuario.rol.descripcion}
+          acces_token   = create_access_token(identity=usuario.id_usuario, additional_claims=additional_claims)
+          refresh_token = create_refresh_token(identity=usuario.id_usuario)
 
-    # Validar el usuario 
-    usuario = Usuario.query.filter_by(email=email).first()
-    if not usuario:
-        return jsonify({"mensaje": "Este usuario no existe en la base de datos"}), HTTPStatus.NOT_FOUND
-    
-    # Validar password
-    if not check_password_hash(usuario.password, password):
-        return jsonify({"mensaje": "Credenciales invalidas"}), HTTPStatus.UNAUTHORIZED
-    
-    rol = usuario.rol.descripcion if usuario.rol else "sin_rol_definido" # ← Obtener el nombre del rol (ej. 'admin')
+          return { 
+              "acces_token": acces_token,
+              "refresh_token": refresh_token,
+              "usuario": usuario,
+              "message": "Login exitoso"
+          }
+        except Exception as e:
+            abort(HTTPStatus.INTERNAL_SERVER_ERROR, message="Error al generar token")            
 
-    # Generar token de autenticacion
-    acces_token = create_access_token(identity=usuario.id_usuario, additional_claims={"rol": rol})
-    refresh_token = create_refresh_token(identity=usuario.id_usuario)
-
-
-    return jsonify({"mensaje": "Login exitoso",
-                    "acces_token": acces_token,
-                    "refresh_token": refresh_token,
-                    }), HTTPStatus.OK
 
 
 
 #------------------ Endpoint para renovar los tokens -------------------#
-@usuario_bp.route('/refresh', methods=['POST'])
-#@jwt_required(refresh=True) # solo acepta refresh tokens
-def refresh():
-    """
-    Renovación de tokens JWT (Access y Refresh)
+from schemas.user_schema import TokenRefreshResponseSchema
+@usuario_bp.route('/refresh')
+class RefreshToken(MethodView):
+    @jwt_required()
+    @usuario_bp.response(HTTPStatus.OK, TokenRefreshResponseSchema)
+    def post(self):
+        jwt_payload = get_jwt()
+        jti = jwt_payload['jti']
+        identity = get_jwt_identity()
 
-    Este endpoint permite a un usuario autenticado con un token de actualización (refresh token) obtener
-    un nuevo par de tokens JWT. El refresh token utilizado se revoca inmediatamente después de ser usado, 
-    implementando una política de rotación segura.
+        # verificar si el token esta revocado
+        if TokenBlocklist.query.filter_by(jti=jti).first():
+            abort(HTTPStatus.UNAUTHORIZED, message="Refresh token revocado")
 
-    ---
-    tags:
-      - Usuarios
-    security:
-      - BearerAuth: []
-    responses:
-      200:
-        description: Nuevos tokens JWT generados exitosamente
-        schema:
-          $ref: '#/definitions/RefreshTokenResponse'
-      401:
-        description: El refresh token ha sido revocado o es inválido
-    """    
-    jwt_payload = get_jwt()
-    jti = jwt_payload['jti'] # id del token actual
-    identity = get_jwt_identity() # id del usuario
+        # Revocar el token actual
+        db.session.add(TokenBlocklist(jti=jti))
+        db.session.commit()
 
-    # validar si ya el token fue revocado
-    token_revocado = TokenBlocklist.query.filter_by(jti=jti).first()
-    if token_revocado:
-        return jsonify({"mensaje": "Refresh token revocado"}), HTTPStatus.UNAUTHORIZED
+        # Generar nuevos tokens
+        new_access_token = create_access_token(identity=identity)
+        new_refresh_token = create_refresh_token(identity=identity)
+
+        return {
+            "acces_token": new_access_token,
+            "refresh_token": new_refresh_token
+        }
     
-    # Revocar token actual (guardando en el blocklist)
-    db.session.add(TokenBlocklist(jti=jti))
-    db.session.commit()
-
-    # Emitir nuevo acces y refresh token
-    new_acces_token = get_jwt_identity()
-    new_refresh_token = create_refresh_token(identity=identity)
-
-    return jsonify({"acces_token": new_acces_token,
-                    "refresh_token": new_refresh_token,}), HTTPStatus.OK
 
 
 
 # ------------------ Endpoint para Logout -----------------------#
-@usuario_bp.route('/logout', methods=['POST'])
-#@jwt_required()
-def logout():
-  """
-  Cerrar sesión
-
-  Revoca el token JWT actual agregándolo a la blocklist.
-  ---
-  tags:
-    - Usuarios
-  security:
-    - BearerAuth: []
-  responses:
-    200:
-      description: Sesión cerrada exitosamente
-    401:
-      description: Token inválido o ya revocado
-  """
-  jti = get_jwt()["jti"]  # Para extraer el ID único del token
-  db.session.add(TokenBlocklist(jti=jti))
-  db.session.commit()
-  return jsonify({"mensaje": "Sesión cerrada con éxito"}), HTTPStatus.OK
+from schemas.user_schema import LogoutResponseSchema
+@usuario_bp.route('/logout')
+class logout(MethodView):
+    @jwt_required()
+    @usuario_bp.response(HTTPStatus.OK, LogoutResponseSchema)
+    def post(self):
+        jti =get_jwt['jti']
+        db.session.add(TokenBlocklist(jti=jti))
+        db.session.commit()
+        return {"mensaje": "Sesion cerrada con exito"}
+    
+    
 
 
+ # ------------------ Endpoint para obtener usuario actual ------------------
+from schemas.user_schema import MeResponseSchema
+@usuario_bp.route('/me')
+class UsuarioAutenticado(MethodView):
+    @jwt_required()
+    @usuario_bp.response(HTTPStatus.OK, MeResponseSchema)
+    def get(self):
+        user_id = get_jwt_identity()
+        usuario = Usuario.query.filter_by(id_usuario=user_id).first()
 
- # ------------------------------ Enpoint para obtener el usuario logueado --------------------------------#
-@usuario_bp.route('/me', methods=['GET'])
-#@jwt_required()
-def obtener_usuario_autenticado():
-    """
-    Obtener usuario autenticado
+        if not usuario:
+            abort(HTTPStatus.NOT_FOUND, message="Usuario no encontrado")
 
-    Este endpoint permite un usuario autenticado consultar 
-    la informacion del usuario que esta logueado en ese momento.
-    ---
-    tags:
-      - Usuarios
-    security:
-      - BearerAuth: []
-    responses:
-      200:
-        description: Datos del usuario autenticado
-        schema:
-          $ref: '#/definitions/Usuario'
-      404:
-        description: Usuario no encontrado
-    """    
-    user_id = get_jwt_identity()  # Extrae el 'identity' del JWT
-    usuario = Usuario.query.filter_by(id_usuario=user_id).first()
-
-    if not usuario:
-        return jsonify({"error": "Usuario no encontrado"}), HTTPStatus.NOT_FOUND
-
-    return jsonify(usuario_schema.dump(usuario)), HTTPStatus.OK
-
+        return usuario_schema.dump(usuario)
 
 
 
 #-----------  Endpoint para validar si la solicitud viene del administrador -----------#
-#@jwt_required()
-def endpoint_solo_admin():
-    claims = get_jwt()
-    if claims.get("rol") != "admin":
-        return jsonify({"error": "Acceso denegado"}), 403
+from schemas.user_schema import AdminMeSchema
+@usuario_bp.route('/admin-only')
+class SoloAdmin(MethodView):
+  @jwt_required()
+  @usuario_bp.response(HTTPStatus.OK, AdminMeSchema)
+  def get(self):
+      claims = get_jwt()
+      if claims.get("rol") != "admin":
+          return jsonify({"error": "Acceso denegado"}), HTTPStatus.FORBIDDEN
+      
+      user_id = get_jwt_identity()
+      usuario = Usuario.query.filter_by(id_usuario=user_id).first()
+      if not usuario:
+          abort(HTTPStatus.NOT_FOUND, message="Usuario no encontrado")
 
-    return jsonify({"mensaje": "Bienvenido administrador"}), 200
+      return usuario

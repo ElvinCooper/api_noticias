@@ -9,6 +9,7 @@ from extensions import db
 from http import HTTPStatus
 from modelos.pais_model import Pais
 from marshmallow.exceptions import ValidationError
+from flask.views import MethodView
 
 
 
