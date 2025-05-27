@@ -28,18 +28,33 @@ class PostSchema(SQLAlchemyAutoSchema):
     autor = fields.Nested(UserSchema, exclude=('posts',), dump_only=True)  # Relación con Usuario
     pais = fields.Nested(PaisSimpleSchema, dump_only=True)  # Relación con Pais
     favoritos = fields.Nested(FavoritoSchema, many=True, dump_only=True)  # Relación uno a muchos
-    categorias = fields.Nested(CategoriaSchema, many=True, dump_only=True)  # Relación muchos a muchos
+    
     multimedia = fields.Nested(MultimediaSchema, many=True, dump_only=True)  # Relación uno a muchos
-   
     status    = fields.Boolean(load_default=True) 
 
-    # #@post_load
-    # def make_post(self, data, **kwargs):
-    #     # Crear instancia de Post asignando campos manualmente
-    #     return Post(
-    #         titulo=data['titulo'],
-    #         contenido=data['contenido'],
-    #         id_usuario=data['id_usuario'],
-    #         id_pais=data['id_pais'],
-    #         visible=data.get('visible', True)
-    #     )
+    # campo para recibir IDs de categorias desde el cliente.
+    categoria_ids = fields.List(fields.Str(), load_only=True, load_default=[])
+
+
+     # Campos de relaciones, solo para mostrar.
+    autor = fields.Nested(UserSchema, exclude=('posts',), dump_only=True)
+    pais = fields.Nested(PaisSimpleSchema, dump_only=True)
+    favoritos = fields.Nested(FavoritoSchema, many=True, dump_only=True)
+    categorias = fields.Nested(CategoriaSchema, many=True, dump_only=True)  # Solo para mostrar
+    multimedia = fields.Nested(MultimediaSchema, many=True, dump_only=True)
+
+
+
+class PaginationSchema(SQLAlchemyAutoSchema):
+    page = fields.Int(load_default=1, validate=lambda x: x >= 1)
+    per_page = fields.Int(load_default=10, validate=lambda x: 1 <= x <= 100)
+
+# Schema para la respuesta paginada
+class PaginatedPostsSchema(SQLAlchemyAutoSchema):
+    posts = fields.Nested(PostSchema, many=True)
+    total = fields.Int()
+    pages = fields.Int()
+    current_page = fields.Int()
+    per_page = fields.Int()
+    has_next = fields.Bool()
+    has_prev = fields.Bool()    

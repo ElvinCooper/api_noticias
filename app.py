@@ -24,6 +24,8 @@ def create_app(testing=True):
     # Cargar configuración por entorno
     env = os.getenv("FLASK_ENV")
 
+    app.config['SQLALCHEMY_ECHO'] = True  # Para que muestre los Querys que se ejecutan.
+
     if testing:
         app.config.from_object(TestingConfig)
     elif env == "production":

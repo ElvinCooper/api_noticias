@@ -1,8 +1,9 @@
 from flask import request, jsonify
-from flask_smorest import Blueprint
+from flask_smorest import Blueprint, abort as smorest_abort
 from modelos.post_model import Post
 from modelos.post_categoria_model import PostCategoria
 from modelos.categoria_model import Categoria
+from modelos.user_model import Usuario
 from schemas.post_schema import PostSchema
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from extensions import db
@@ -20,132 +21,104 @@ post_schema   = PostSchema()
 posts_schemas = PostSchema(many=True)
 
 
-#---------------------- Enpoint para consultar todos los post en la BD --------------------------#
-@post_bp.route('/posts', methods=['GET'])
-#@jwt_required() 
-def get_all_post():
-  """
-    Obtener todos los posts
-    ---
-    tags:
-      - Posts
-    responses:
-      200:
-        description: Lista de posts
-        schema:
-          type: array
-          items:
-            $ref: '#/definitions/Post'
-  """
-  #posts = Post.query.all()
-  posts = Post.query.paginate(page=1, per_page=10, error_out=False)
-  return jsonify({
-                "posts": posts_schemas.dump(posts.items, many=True),
-                "pagina_actual": posts.page,
-                "total_paginas": posts.pages}), HTTPStatus.OK
+#---------------------- CRUD de los Posts con paginacion --------------------------#
+from schemas.post_schema import PaginationSchema, PaginatedPostsSchema
+@post_bp.route('/posts')
+class PostResource(MethodView):
+   
+   @post_bp.arguments(PaginationSchema, location="query", as_kwargs=True)
+   @post_bp.response(HTTPStatus.OK, PaginatedPostsSchema)
+   #@jwt_required() 
+   def get(self, page=1, per_page=10):
+    """ Consultar todos los Posts"""
+    pagination = Post.query.paginate(
+       page=page,
+       per_page=per_page,
+       error_out=False
+    )
+
+    #posts = Post.query.all()
+    return {
+       'posts': pagination.items,
+       'total': pagination.total,
+       'pages': pagination.pages,
+       'current_page': pagination.page,
+       'per_page': pagination.per_page,
+       'has_next': pagination.has_next,
+       'has_prev': pagination.has_prev
+    }
+   
+
+   @post_bp.arguments(PostSchema)
+   @post_bp.response(HTTPStatus.CREATED, PostSchema)
+   #jwt_required()
+   def post(self, post_data):
+      """ Crear un nuevo Post"""
+
+      try:
+          # validar la existencia del pais
+          pais = Pais.query.filter_by(id_pais=post_data.id_pais).first()  #validar si el codigo de pais recibido existe
+
+          # Obtener y validar categorías (si existen)
+          categorias_ids = getattr(post_data, 'categorias', []) or []
+          categorias_validas = [] 
+          
+          # Validar la existencia del pais
+          if not pais:
+            smorest_abort(HTTPStatus.NOT_FOUND, message="No existe un pais con ese ID")           
 
 
-#------------------------ Enpoint consultar un post con su id ----------------------#
-@post_bp.route('post/<string:id_post>', methods=['GET'])
-def get_post_by_user(id_post):
-    """
-    Obtener un post por ID
+          # Validar existencia del usuario
+          usuario = Usuario.query.filter_by(id_usuario=post_data.id_usuario).first()
+          if not usuario:
+             smorest_abort(HTTPStatus.NOT_FOUND, message="No existe un usuario con ese ID")
 
-    Retorna los detalles de un post específico según su ID.
-    ---
-    tags:
-      - Posts
-    parameters:
-      - name: id_post
-        in: path
-        type: string
-        required: true
-        description: ID del post
-    responses:
-      200:
-        description: Post encontrado
-        schema:
-          $ref: '#/definitions/Post'
-      404:
-        description: Post no encontrado
-    """
-    
-    post = db.session.get(Post, id_post)
+          for id_categoria in categorias_ids:
+                categoria = Categoria.query.get(id_categoria)
+                if categoria:
+                    categorias_validas.append(id_categoria)   
 
+
+          # Llenar la tabla de PostCategoria
+          for id_categoria in categorias_validas:
+             relacion = PostCategoria(id_post=post_data.id_post, id_categoria=id_categoria)
+             db.session.add(relacion)          
+
+          
+          # Crear el Post
+          db.session.add(post_data)    
+          db.session.flush()  # para obtener el ID del post antes del commit
+
+          # Insertar relaciones
+          for id_categoria in categorias_validas:
+            relacion = PostCategoria(id_post=post_data.id_post, id_categoria=id_categoria)
+            db.session.add(relacion)
+
+
+          db.session.commit()  
+          return post_data
+      
+      except Exception as e:
+         db.session.rollback()
+         smorest_abort(HTTPStatus.BAD_REQUEST, message=f"Error al crear post: {str(e)}")
+      
+
+
+#------------------------ Enpoint consultar un post con su ID ----------------------#
+@post_bp.route('post/<string:id_post>')
+class PostResourceID(MethodView):
+   
+   @post_bp.response(HTTPStatus.OK, PostSchema)
+   #jwt_required()
+   def get(self, id_post):
+    """ Consultar un Post por su ID"""
+       
+    post = Post.query.filter_by(id_post=id_post).first()
     if not post:
-      return jsonify({"mensaje": "Post no encontrado"}), HTTPStatus.NOT_FOUND  
+       smorest_abort(HTTPStatus.NOT_FOUND, message='No existe ninnug Post con ese ID')
 
-    return jsonify(post_schema.dump(post)), HTTPStatus.OK
+    return post    
 
-
-
-# ---------------------------  Endpoint para crear un nuevo Post -----------------------------#
-@post_bp.route('/create', methods=['POST'])
-#@jwt_required()
-def crear_post():  
-  """
-  Crear un nuevo post
-
-  Permite a un usuario autenticado crear un nuevo post.
-  ---
-  tags:
-    - Posts
-  security:
-    - BearerAuth: []
-  parameters:
-    - name: body
-      in: body
-      required: true
-      schema:
-        $ref: '#/definitions/Post'
-  responses:
-    201:
-      description: Post creado exitosamente
-      schema:
-        $ref: '#/definitions/Post'
-    400:
-      description: Error al crear el post
-  """
-    
-  json_data = request.get_json()
-  user_id = get_jwt_identity()
-  
-  try:
-    json_data['id_usuario'] = user_id
-    id_pais = json_data['id_pais']
-    categoria_ids = json_data.pop('categorias', [])
-
-    # validar la existencia del pais
-    pais = Pais.query.filter_by(id_pais=id_pais).first()  #validar si el codigo de pais recibido existe
-    if not pais:
-       return jsonify({"error": "El id_pais digitado no existe en el catalogo, favor revisar"})
-    
-    # validar existencia de cada categoria
-    categorias_validas = []
-    for id_categoria in categoria_ids:
-      if Categoria.query.get(id_categoria):
-        categorias_validas.append(id_categoria)
-      else:
-         continue
-    
-    
-    # crear el post
-    nuevo_post = post_schema.load(json_data)
-    db.session.add(nuevo_post)
-    db.session.flush()  # para tener el ID del post antes del commit
-
-    # Insertar relaciones
-    for id_categoria in categorias_validas:
-       relacion = PostCategoria(id_post=nuevo_post.id_post, id_categoria=id_categoria)
-       db.session.add(relacion)
-
-    db.session.commit()
-    return jsonify(post_schema.dump(nuevo_post)), HTTPStatus.CREATED
-  
-  except Exception as e:
-      db.session.rollback()
-      return jsonify({'error': str(e)}), HTTPStatus.BAD_REQUEST
-  
 
 
 #------------------------ Actualizar o Editar  un Post -----------------------------#
@@ -203,6 +176,7 @@ def actualizar_post(id_post):
     return jsonify({"error": e.messages}), HTTPStatus.BAD_REQUEST
   except Exception as err:
     return jsonify({"error": str(err)}), HTTPStatus.BAD_REQUEST              
+
 
 
 

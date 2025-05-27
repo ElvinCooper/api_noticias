@@ -1,6 +1,7 @@
-from flask import request, jsonify, abort
-from flask_smorest import Blueprint
+from flask import request, jsonify
+from flask_smorest import Blueprint, abort
 from modelos.user_model import Usuario
+from modelos.rol_model import Rol
 from schemas.user_simple_schema import UserSimpleSchema
 from schemas.user_schema import UserSchema, UserUpdateSchema
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, create_refresh_token
@@ -53,18 +54,27 @@ class UsuarioList(MethodView):
    @usuario_bp.arguments(UserRegisterSchema)
    @usuario_bp.response(HTTPStatus.CREATED, UserRegisterSchema)
    def post(self, data_usuario):
-      if Usuario.query.filter_by(email=data_usuario.email).first():
+      if Usuario.query.filter_by(email=data_usuario['email']).first():
          abort(HTTPStatus.BAD_REQUEST, message="Ya existe un usuario con ese email.")
 
-      # hashear el password antes de guardar
-      data_usuario.password = generate_password_hash(data_usuario.password)
+      # Asignar rol por defecto 
+      rol_por_defecto = Rol.query.filter_by(descripcion="usuario").first()
+      if not rol_por_defecto:
+          abort(HTTPStatus.INTERNAL_SERVER_ERROR, message="No se encontro el predeterminado.")
 
-      db.session.add(data_usuario)
+      
+      # Crear el nuevo usuario
+      nuevo_usuario = Usuario(nombre = data_usuario['nombre'],
+                              email = data_usuario['email'],
+                              password=generate_password_hash(data_usuario['nombre']),
+                              id_rol=rol_por_defecto.id_rol
+                              )
+
+     # Guardar el nuevo usuario con los datos + rol asignado
+      db.session.add(nuevo_usuario)
       db.session.commit()
 
-      return data_usuario
-
-
+      return nuevo_usuario
 
 
 # --------------------------------- Actualizar datos de un usuario ---------------------------------#
