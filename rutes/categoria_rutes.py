@@ -20,7 +20,7 @@ categorias_schemas = CategoriaSchema(many=True)
 class CategoriaResource(MethodView):
     @categorias_bp.response(HTTPStatus.OK, CategoriaSchema)
     # @jwt_required()
-    def get(self, id_pais):
+    def get(self):
         categoria = Categoria.query.all()        
         return categoria
 
@@ -43,7 +43,7 @@ from flask.views import MethodView
 class CategoriaList(MethodView):
     @categorias_bp.arguments(CategoriaSchema)
     @categorias_bp.response(201, CategoriaSchema)
-    # @jwt_required()  # Descomenta si lo necesitas
+    # @jwt_required()  
     def post(self, categoria_data):
         if Categoria.query.filter_by(descripcion=categoria_data.descripcion).first():
             abort(400, message="Ya existe una categoría con esa descripción.")
