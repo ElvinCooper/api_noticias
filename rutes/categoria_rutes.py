@@ -10,71 +10,33 @@ from modelos.categoria_model import Categoria
 from flask_jwt_extended import jwt_required
 
 
-
-#categorias_bp = Blueprint('categorias', __name__
 categorias_bp = Blueprint('categorias', __name__, description="Operaciones con Categorias")
 categoria_schema = CategoriaSchema()
 categorias_schemas = CategoriaSchema(many=True)
 
 
-
 # ----------------------------  Consultar todas las categorias  --------------------------------#
-@categorias_bp.route('/categorias', methods=['GET'])
-#@jwt_required()
-def obtener_categorias():
-    """
-    Obtener todas las categorías
-
-    Este endpoint retorna la lista completa de categorías disponibles en el sistema, incluyendo su descripción e ID.
-    ---
-    tags:
-      - Categorías
-    responses:
-      200:
-        description: Lista de categorías
-        schema:
-          type: array
-          items:
-            $ref: '#/definitions/Categoria'
-    """
-    categoria = Categoria.query.all()
-    return jsonify(categorias_schemas.dump(categoria)), HTTPStatus.OK
-    
+@categorias_bp.route("/api/categoria")
+class CategoriaResource(MethodView):
+    @categorias_bp.response(HTTPStatus.OK, CategoriaSchema)
+    # @jwt_required()
+    def get(self, id_pais):
+        categoria = Categoria.query.all()        
+        return categoria
 
 
 # ----------------------------  Consultar una categoria por su ID  --------------------------------#
-@categorias_bp.route('/categoria/<string:id_categoria>', methods=['GET'])
-#@jwt_required()
-def obtener_categoria_por_id(id_categoria):
-    """
-    Obtener una categoría por ID
-
-    Este endpoint permite consultar los detalles de una categoría específica usando su ID.
-    ---
-    tags:
-      - Categorías
-    parameters:
-      - name: id_categoria
-        in: path
-        type: string
-        required: true
-        description: ID de la categoría a consultar
-    responses:
-      200:
-        description: Categoría encontrada
-        schema:
-          $ref: '#/definitions/Categoria'
-      404:
-        description: Categoría no encontrada
-    """
-    categoria = Categoria.query.filter_by(id_categoria=id_categoria).first()
-
-    if not categoria:
-        return jsonify({"error": "Categoria no encontrada"}), HTTPStatus.NOT_FOUND
-    
-    return jsonify(categoria_schema.dump(categoria)), HTTPStatus.OK
+@categorias_bp.route('/categoria/<string:id_categoria>')
+class CategoriaResourceId(MethodView):
+  @categorias_bp.response(HTTPStatus.OK, CategoriaSchema)  
+  #@jwt_required()
+  def get(self, id_categoria):
+      categoria = Categoria.query.filter_by(id_categoria=id_categoria).first()
+      if not categoria:
+          abort(HTTPStatus.NOT_FOUND, message="Categoria no encontrada")
 
 
+# ----------------------------  Registar una nueva categoria  --------------------------------#
 from flask.views import MethodView
 
 @categorias_bp.route("/api/categoria")
