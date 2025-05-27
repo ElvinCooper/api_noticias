@@ -16,7 +16,7 @@ multimedias_schemas = MultimediaSchema(many=True)
 
 
 #--------------------- Endpoint para obtener todos los datos multimedias del sistema ----------------------#
-@multimedia_bp.get('/')
+@multimedia_bp.get('/multimedia')
 #@jwt_required()
 def get_todos():    
     """
@@ -42,7 +42,7 @@ def get_todos():
 
 
 #--------------------- Endpoint para consultar un recurso multimedia por su id ----------------------#
-@multimedia_bp.get('/<string:id_multimedia>')
+@multimedia_bp.get('/multimedia/<string:id_multimedia>')
 #@jwt_required()    \comentado para pruebas
 def get_one(id_multimedia):
     """

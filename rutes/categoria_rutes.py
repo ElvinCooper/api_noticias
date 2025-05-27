@@ -16,7 +16,7 @@ categorias_schemas = CategoriaSchema(many=True)
 
 
 # ----------------------------  Consultar todas las categorias  --------------------------------#
-@categorias_bp.route("/api/categoria")
+@categorias_bp.route("/categoria")
 class CategoriaResource(MethodView):
     @categorias_bp.response(HTTPStatus.OK, CategoriaSchema)
     # @jwt_required()
@@ -39,7 +39,7 @@ class CategoriaResourceId(MethodView):
 # ----------------------------  Registar una nueva categoria  --------------------------------#
 from flask.views import MethodView
 
-@categorias_bp.route("/api/categoria")
+@categorias_bp.route("/categoria")
 class CategoriaList(MethodView):
     @categorias_bp.arguments(CategoriaSchema)
     @categorias_bp.response(201, CategoriaSchema)

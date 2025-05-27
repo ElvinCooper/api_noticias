@@ -14,11 +14,11 @@ class PaisSchema(SQLAlchemyAutoSchema):
 
     id_pais = fields.Str(dump_only=True)
     nombre_pais      = fields.Str(required=True, validate=validate.Length(max=(50)))
-    abrebiatura_pais = fields.Str(required=True, validate=validate.Length(3))
+    abrebiatura_pais = fields.Str(required=True, validate=validate.Length(max=3))
     id_multimedia    = fields.Str(allow_none=True, load_only=True)
     
 
 class PaisCreateSchema(SQLAlchemyAutoSchema):
     id_pais = fields.Str(required=True)
     nombre_pais = fields.Str(required=True, validate=validate.Length(max=50))
-    abrebiatura_pais = fields.Str(required=True, validate=validate.Length(equal=3))    
+    abrebiatura_pais = fields.Str(required=True, validate=validate.Length(max=3))    

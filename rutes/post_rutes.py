@@ -46,7 +46,7 @@ def get_all_post():
 
 
 #------------------------ Enpoint consultar un post con su id ----------------------#
-@post_bp.route('post//<string:id_post>', methods=['GET'])
+@post_bp.route('post/<string:id_post>', methods=['GET'])
 def get_post_by_user(id_post):
     """
     Obtener un post por ID

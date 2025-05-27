@@ -16,7 +16,7 @@ paises_schema = PaisSchema(many=True)
 
 
 #---------------- Endpoint para consultar todos los paises en la BD -------------------#
-@pais_bp.route("/api/pais")
+@pais_bp.route("/pais")
 class PaisResource(MethodView):
     @pais_bp.response(HTTPStatus.OK, PaisSchema)
     # @jwt_required()
@@ -26,7 +26,7 @@ class PaisResource(MethodView):
 
 
 # ----------------------------  Consultar una pais por su ID  --------------------------------#
-@pais_bp.route("/api/pais/<string:id_pais>")
+@pais_bp.route("/pais/<string:id_pais>")
 class PaisResourceId(MethodView):
     @pais_bp.response(HTTPStatus.OK, PaisSchema)
     # @jwt_required()
@@ -40,7 +40,7 @@ class PaisResourceId(MethodView):
 
 #----------------- Endpoint para registrar un nuevo pais en el sistema --------------------------#
 from schemas.pais_schema import PaisCreateSchema
-@pais_bp.route("/api/pais")
+@pais_bp.route("/pais")
 class PaisList(MethodView):
     @pais_bp.arguments(PaisCreateSchema)
     @pais_bp.response(HTTPStatus.CREATED, PaisSchema)

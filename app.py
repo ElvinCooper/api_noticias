@@ -22,7 +22,7 @@ def create_app(testing=True):
     load_dotenv()
 
     # Cargar configuración por entorno
-    env = os.getenv("FLASK_ENV", "development")
+    env = os.getenv("FLASK_ENV")
 
     if testing:
         app.config.from_object(TestingConfig)
@@ -31,8 +31,6 @@ def create_app(testing=True):
     else:
         app.config.from_object(DevelopmentConfig)
 
-    # Activar claves foráneas en SQLite (si aplica)
-    enable_sqlite_foreign_keys()
 
     # CORS dinámico desde config
     CORS(app, resources={
@@ -51,12 +49,12 @@ def create_app(testing=True):
 
     # Registrar blueprints
     api.register_blueprint(usuario_bp, url_prefix='/api')
-    api.register_blueprint(post_bp, url_prefix='/api/post')
-    api.register_blueprint(favorito_bp, url_prefix='/api/favoritos')
-    api.register_blueprint(categorias_bp, url_prefix='/api/categorias')
-    api.register_blueprint(pais_bp, url_prefix='/api/paises')
-    api.register_blueprint(post_cat_bp, url_prefix='/api/post_cat')
-    api.register_blueprint(multimedia_bp, url_prefix='/api/multimedia')
+    api.register_blueprint(post_bp, url_prefix='/api')
+    api.register_blueprint(favorito_bp, url_prefix='/api')
+    api.register_blueprint(categorias_bp, url_prefix='/api')
+    api.register_blueprint(pais_bp, url_prefix='/api')
+    api.register_blueprint(post_cat_bp, url_prefix='/api')
+    api.register_blueprint(multimedia_bp, url_prefix='/api')
 
     # JWT & comandos CLI
     from auth.jwt_callbacks import jwt

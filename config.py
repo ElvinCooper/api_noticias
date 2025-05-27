@@ -28,7 +28,7 @@ class BaseConfig:
 class DevelopmentConfig(BaseConfig):
     DEBUG = True
     # Clave secreta para sesiones, JWT etc..
-    SQLALCHEMY_DATABASE_URI = os.getenv("SQLALCHEMY_DATABASE_URI", "sqlite:///infonovax.db")  
+    SQLALCHEMY_DATABASE_URI = os.getenv("SQLALCHEMY_DATABASE_URI", "postgresql://infonovax_user:5CFyBwyKghRKWoIqhj19hZQAHIp1sRm0@dpg-d0qe6kre5dus739ge4g0-a.ohio-postgres.render.com/infonovax")  
     FRONTEND_URL = "http://localhost:3000"
 
 
@@ -49,7 +49,7 @@ class ProductionConfig(BaseConfig):
 
 class TestingConfig(BaseConfig):
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = "sqlite:///infonovax.db"    
+    SQLALCHEMY_DATABASE_URI = "postgresql://infonovax_user:5CFyBwyKghRKWoIqhj19hZQAHIp1sRm0@dpg-d0qe6kre5dus739ge4g0-a.ohio-postgres.render.com/infonovax"    
     JWT_SECRET_KEY = "test-secret"
     SECRET_KEY = "test"
     FRONTEND_URL = "http://localhost:3000"
