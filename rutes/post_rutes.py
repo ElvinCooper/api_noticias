@@ -1,4 +1,3 @@
-from flask import request, jsonify
 from flask_smorest import Blueprint, abort as smorest_abort
 from modelos.post_model import Post
 from modelos.post_categoria_model import PostCategoria
@@ -9,7 +8,6 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from extensions import db
 from http import HTTPStatus
 from modelos.pais_model import Pais
-from marshmallow.exceptions import ValidationError
 from flask.views import MethodView
 
 
@@ -134,7 +132,7 @@ class PostItemResource(MethodView):
         smorest_abort(HTTPStatus.NOT_FOUND, message="Post no encontrado")
 
         if post.id_usuario != id_usuario:
-           abort(HTTPStatus.FORBIDDEN, message="No tienes permisos para editar este post")
+           smorest_abort(HTTPStatus.FORBIDDEN, message="No tienes permisos para editar este post")
 
         try:
             if update_data.get("id_pais"):
@@ -149,7 +147,7 @@ class PostItemResource(MethodView):
 
         except Exception as err:
             db.session.rollback()
-            abort(HTTPStatus.BAD_REQUEST, message=f"Error al actualizar el post: {str(err)}")
+            smorest_abort(HTTPStatus.BAD_REQUEST, message=f"Error al actualizar el post: {str(err)}")
 
 
 

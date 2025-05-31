@@ -6,7 +6,7 @@ on:
 
 jobs: 
   notificando-despliegue:
-    runs-on: ubuntu_latest
+    runs-on: ubuntu-latest
     steps:
      - run: echo "Notificacion de despliegue"
      - run: echo "Estamos en produccion"

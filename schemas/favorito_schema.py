@@ -1,4 +1,4 @@
-from marshmallow import fields, post_load
+from marshmallow import fields, Schema
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from modelos.favorito_model import Favorito
 from schemas.simple.post_simple_schema import PostSimpleSchema
@@ -16,3 +16,12 @@ class FavoritoSchema(SQLAlchemyAutoSchema):
     id_post    = fields.Str(required=True, load_only=True)     
     usuario    = fields.Nested("UserSchema", dump_only=True)  # Relación con Usuario
     post       = fields.Nested(PostSimpleSchema, dump_only=True)  # Relación con Post
+
+
+class FavoritoInputSchema(Schema):
+    id_post = fields.Str(required=True, load_only=True)
+
+class FavoritoResponseSchema(Schema):
+    mensaje = fields.String()
+    id_usuario = fields.String()
+    id_post = fields.String()

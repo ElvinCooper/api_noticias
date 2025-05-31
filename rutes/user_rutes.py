@@ -3,7 +3,8 @@ from flask_smorest import Blueprint, abort
 from modelos.user_model import Usuario
 from modelos.rol_model import Rol
 from schemas.user_simple_schema import UserSimpleSchema
-from schemas.user_schema import UserSchema, UserUpdateSchema, ErrorSchema
+from schemas.user_schema import UserSchema, UserUpdateSchema
+from schemas.Error_schemas import ErrorSchema
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, create_refresh_token
 from extensions import db
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -14,7 +15,7 @@ from modelos.TokenBlocklist_model import TokenBlocklist
 from flask.views import MethodView
 
 
-# Importacion de Schemas para respuestas
+# Importacion de Schemas para respuestas de los endpoints
 from schemas.user_schema import LoginResponseSchema, LoginSchema
 from schemas.user_schema import TokenRefreshResponseSchema
 from schemas.user_schema import LogoutResponseSchema

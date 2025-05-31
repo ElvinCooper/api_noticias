@@ -1,4 +1,3 @@
-from flask import jsonify
 from flask_smorest import Blueprint, abort
 from flask.views import MethodView
 from extensions import db
@@ -7,6 +6,7 @@ from marshmallow.exceptions import ValidationError
 from schemas.categoria_schema import CategoriaSchema
 from modelos.categoria_model import Categoria
 from flask_jwt_extended import jwt_required
+from schemas.Error_schemas import ErrorSchema
 
 
 categorias_bp = Blueprint('categorias', __name__, description="Operaciones con Categorias")
@@ -45,7 +45,9 @@ class CategoriaResource(MethodView):
 class CategoriaResourceId(MethodView):
   
   @categorias_bp.response(HTTPStatus.OK, CategoriaSchema)  
-  @categorias_bp.alt_response(HTTPStatus.NOT_FOUND, description="Categoria no encontrada")
+  @categorias_bp.alt_response(HTTPStatus.NOT_FOUND, schema=ErrorSchema, description="No existe un recurso con este id", example={"success": False, "message": "Not Found"})
+  @categorias_bp.alt_response(HTTPStatus.UNAUTHORIZED, schema=ErrorSchema, description="No autorizado", example={"success": False, "message": "No autorizado"})
+  @categorias_bp.alt_response(HTTPStatus.INTERNAL_SERVER_ERROR, schema=ErrorSchema, description="Error interno del servidor", example={"success": False, "message": "Error interno del servidor"})
   #@jwt_required()
   def get(self, id_categoria):
       """ Consultar una categoria por su ID"""

@@ -1,9 +1,8 @@
-from flask import request, jsonify
 from flask_smorest import Blueprint, abort as smorest_abort
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from modelos.favorito_model import Favorito
-from schemas.simple.post_simple_schema import PostSimpleSchema
 from schemas.favorito_schema import FavoritoSchema
+from schemas.Error_schemas import ErrorSchema
 from modelos.post_model import Post
 from extensions import db
 from http import HTTPStatus
@@ -32,6 +31,9 @@ class FavoritoResource(MethodView):
 
     @favorito_bp.arguments(FavoritoSchema)          
     @favorito_bp.response(HTTPStatus.CREATED, FavoritoSchema)
+    @favorito_bp.alt_response(HTTPStatus.BAD_REQUEST, schema=ErrorSchema, description="Falta el campo id_post", example={"success": False, "message": "El campo 'id_post' es obligatorio"})
+    @favorito_bp.alt_response(HTTPStatus.INTERNAL_SERVER_ERROR, schema=ErrorSchema, description="Error interno del servidor", example={"success": False, "message": "Error interno del servidor"})
+    
     #@jwt_required()
     def get(self, favorito_data):
         """ Consultar para crear un nuevo favorito """
@@ -56,6 +58,7 @@ class FavoritoResourceID(MethodView):
 
   @favorito_bp.arguments(FavoritoSchema)          
   @favorito_bp.response(HTTPStatus.OK, FavoritoSchema)
+  @favorito_bp.alt_response(HTTPStatus.INTERNAL_SERVER_ERROR, schema=ErrorSchema, description="Error interno del servidor", example={"success": False, "message": "Error interno del servidor"})
   #@jwt_required()
   def get(self, id_favorito):
     """ Consultar un Post favorito por su ID"""
@@ -70,106 +73,64 @@ class FavoritoResourceID(MethodView):
 
 #------------------  Enpoint para marcar un post como favorito ----------------------#
 
-@favorito_bp.route('/favorito', methods=['POST'])
-#@jwt_required()
-def crear_favorito():
-    """
-    Marcar un post como favorito
-    ---
-    tags:
-      - Favoritos
-    security:
-      - BearerAuth: []
-    parameters:
-      - name: body
-        in: body
-        required: true
-        schema:
-          type: object
-          required:
-            - id_post
-          properties:
-            id_post:
-              type: integer
-              description: ID del post a marcar como favorito
-    responses:
-      201:
-        description: Post agregado a favoritos exitosamente
-        schema:
-          $ref: '#/definitions/Post'
-      400:
-        description: Falta el campo 'id_post'
-      404:
-        description: Post no encontrado
-      409:
-        description: Post ya está en favoritos
-    """
-    json_data = request.get_json()
-    id_post = json_data.get('id_post')
-    id_usuario = get_jwt_identity()
+from schemas.favorito_schema import FavoritoInputSchema, FavoritoResponseSchema
 
-    if not id_post:
-        return jsonify({"error": "El campo 'id_post' es obligatorio"}), HTTPStatus.BAD_REQUEST
+@favorito_bp.route("/favorito")
+class FavoritoResource(MethodView):
 
-    # Validar que el post existe
-    post = Post.query.get(id_post)
-    if not post:
-        return jsonify({"error": "El post no existe"}), HTTPStatus.NOT_FOUND
+    @jwt_required()
+    @favorito_bp.arguments(FavoritoInputSchema)
+    @favorito_bp.response(HTTPStatus.CREATED, FavoritoResponseSchema)
+    @favorito_bp.alt_response(HTTPStatus.BAD_REQUEST, schema=ErrorSchema, description="Falta el campo id_post", example={"success": False, "message": "El campo 'id_post' es obligatorio"})
+    @favorito_bp.alt_response(HTTPStatus.NOT_FOUND, schema=ErrorSchema, description="Post no encontrado", example={"success": False, "message": "El post no existe"})
+    @favorito_bp.alt_response(HTTPStatus.CONFLICT, schema=ErrorSchema, description="Ya marcado como favorito", example={"success": False, "message": "Este post ya está en tus favoritos"})
+    def post(self, data):
+        """Marcar un post como favorito"""
+        id_post = data.get("id_post")
+        id_usuario = get_jwt_identity()
 
-    # Validar que no se haya marcado como favorito antes
-    favorito_existente = Favorito.query.filter_by(id_usuario=id_usuario, id_post=id_post).first()
-    if favorito_existente:
-        return jsonify({"mensaje": "Este post ya está en tus favoritos"}), HTTPStatus.CONFLICT
+        post = Post.query.get(id_post)
+        if not post:
+            smorest_abort(HTTPStatus.NOT_FOUND, message="El post no existe")
 
+        favorito_existente = Favorito.query.filter_by(id_usuario=id_usuario, id_post=id_post).first()
+        if favorito_existente:
+            smorest_abort(HTTPStatus.CONFLICT, message="Este post ya está en tus favoritos")
 
-    # Crear nuevo favorito
-    nuevo_favorito = Favorito(id_usuario=id_usuario, id_post=id_post)
-    db.session.add(nuevo_favorito)
-    db.session.commit()
+        nuevo_favorito = Favorito(id_usuario=id_usuario, id_post=id_post)
+        db.session.add(nuevo_favorito)
+        db.session.commit()
 
-    return jsonify({
-        "mensaje": "Post agregado a favoritos exitosamente",
-        "id_usuario": id_usuario,
-        "id_post": id_post
-    }), HTTPStatus.CREATED
+        return {
+            "mensaje": "Post agregado a favoritos exitosamente",
+            "id_usuario": id_usuario,
+            "id_post": id_post
+        }
 
 
 
 #------------------------------------ Enpoint para eliminar un favorito ---------------------------------------#
 
-@favorito_bp.route('/eliminar/<string:id_post>', methods=['DELETE'])
-#@jwt_required()
-def eliminar_favorito(id_post):
-    """
-    Eliminar un post de los favoritos del usuario
-    ---
-    tags:
-      - Favoritos
-    security:
-      - BearerAuth: []
-    parameters:
-      - name: id_post
-        in: path
-        required: true
-        type: string
-        description: ID del post a eliminar de favoritos
-        schema:
-          $ref: '#/definitions/Favorito'
-    responses:
-      200:
-        description: Post eliminado de favoritos
-      404:
-        description: El post no estaba en tus favoritos
-    """
-    id_usuario = get_jwt_identity()
+@favorito_bp.route("/favorito")
+class FavoritoResource(MethodView):
+
+    @jwt_required()
+    @favorito_bp.arguments(FavoritoInputSchema)
+    @favorito_bp.response(HTTPStatus.CREATED, FavoritoResponseSchema)
+    @favorito_bp.alt_response(HTTPStatus.BAD_REQUEST, schema=ErrorSchema, description="Falta el campo id_post", example={"success": False, "message": "El campo 'id_post' es obligatorio"})
+    @favorito_bp.alt_response(HTTPStatus.NOT_FOUND, schema=ErrorSchema, description="Post no encontrado", example={"success": False, "message": "El post no existe"})
+    def post(self, data):
+        """Marcar un post como favorito"""
+        id_post = data.get("id_post")
+        id_usuario = get_jwt_identity()
     
-    favorito = Favorito.query.filter_by(id_usuario=id_usuario, id_post=id_post).first()
-    if not favorito:
-        return jsonify({"mensaje": "Este post no está en tus favoritos"}), HTTPStatus.NOT_FOUND
+        favorito = Favorito.query.filter_by(id_usuario=id_usuario, id_post=id_post).first()
+        if not favorito:
+            smorest_abort(HTTPStatus.NOT_FOUND, message="Este post no está en tus favoritos")
 
-    db.session.delete(favorito)
-    db.session.commit()
+        db.session.delete(favorito)
+        db.session.commit()
 
-    return jsonify({"mensaje": "Post eliminado de tus favoritos"}), HTTPStatus.OK
+        return {"mensaje": "Post eliminado de tus favoritos"}
 
 

@@ -1,10 +1,10 @@
-from flask import request, jsonify
 from flask_smorest import Blueprint, abort
 from extensions import db
 from http import HTTPStatus
 from modelos.pais_model import Pais
 from marshmallow.exceptions import ValidationError
 from schemas.pais_schema import PaisSchema
+from schemas.Error_schemas import ErrorSchema
 from flask_jwt_extended import jwt_required
 from flask.views import MethodView
 
@@ -48,7 +48,9 @@ class PaisResource(MethodView):
 class PaisResourceId(MethodView):
 
     @pais_bp.response(HTTPStatus.OK, PaisSchema)
-    @pais_bp.alt_response(HTTPStatus.NOT_FOUND, description='No existe un pais con ese ID')
+    @pais_bp.alt_response(HTTPStatus.NOT_FOUND, schema=ErrorSchema, description="No existe un recurso con este id", example={"success": False, "message": "Not Found"})
+    @pais_bp.alt_response(HTTPStatus.UNAUTHORIZED, schema=ErrorSchema, description="No autorizado", example={"success": False, "message": "No autorizado"})
+    @pais_bp.alt_response(HTTPStatus.INTERNAL_SERVER_ERROR, schema=ErrorSchema, description="Error interno del servidor", example={"success": False, "message": "Error interno del servidor"})
     # @jwt_required()
     def get(self, id_pais):
         """ Consultar un Pais por su ID"""
