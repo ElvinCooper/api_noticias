@@ -1,79 +1,69 @@
 from flask import request, jsonify
-from flask_smorest import Blueprint
+from flask_smorest import Blueprint, abort as smorest_abort
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from modelos.favorito_model import Favorito
 from schemas.simple.post_simple_schema import PostSimpleSchema
+from schemas.favorito_schema import FavoritoSchema
 from modelos.post_model import Post
 from extensions import db
 from http import HTTPStatus
+from flask.views import MethodView
+
 
 favorito_bp = Blueprint('favoritos', __name__, description='Operaciones con Favoritos')
-post_schema = PostSimpleSchema(many=True)
 
 
-# ------------------- Endpoint para ver todos los post favoritos --------------------------#
-@favorito_bp.route('/favoritos', methods=['GET'])
-#@jwt_required()
-def obtener_favoritos():
-    """
-    Obtener posts favoritos del usuario autenticado
-    ---
-    tags:
-      - Favoritos
-    security:
-      - BearerAuth: []
-    responses:
-      200:
-        description: Lista de posts favoritos
-        schema:
-          type: array
-          items:
-            $ref: '#/definitions/Post'
-    """    
-    id_usuario = get_jwt_identity()
-    favoritos = Favorito.query.filter_by(id_usuario=id_usuario).all()
+# ------------------- CRUD de Favoritos --------------------------#
+@favorito_bp.route('/favoritos')
+class FavoritoResource(MethodView):
     
-    posts = [fav.post for fav in favoritos]
+    @favorito_bp.response(HTTPStatus.OK, FavoritoSchema(many=True))
+    #@jwt_required()
+    def get(self):
+      """ Consultar todos los Favoritos"""
+      id_usuario = get_jwt_identity()
+      favoritos = Favorito.query.filter_by(id_usuario=id_usuario).all()
+      if not favoritos:
+          smorest_abort(HTTPStatus.NOT_FOUND, message="Aun no tiene Posts marcados como favorito")
 
-    
-    return jsonify(post_schema.dump(posts)), HTTPStatus.OK
+      posts = [fav.post for fav in favoritos]
+
+      return posts      
+
+    @favorito_bp.arguments(FavoritoSchema)          
+    @favorito_bp.response(HTTPStatus.CREATED, FavoritoSchema)
+    #@jwt_required()
+    def get(self, favorito_data):
+        """ Consultar para crear un nuevo favorito """
+        # Verificar si ya estaba marcado como favorito
+        if Favorito.query.filter_by(id_post=favorito_data['id_post']).first():
+           smorest_abort(HTTPStatus.BAD_REQUEST, message="Este Post ya esta marcado como favorito")
+
+        # Crear el nuevo favorito
+        nuevo_favorito = Favorito(id_post=favorito_data.id_post)
+
+        db.session.add(nuevo_favorito)
+        db.session.commit()
+
+        return nuevo_favorito
 
 
 
 # ------------------- Endpoint para ver favoritos por su ID --------------------------#
 
-@favorito_bp.route('/<string:id_usuario>/favoritos', methods=['GET'])
-def get_favoritos_by_user(id_usuario):
-    """
-    Obtener favoritos de un usuario por su ID
-    ---
-    tags:
-      - Favoritos
-    parameters:
-      - name: id_usuario
-        in: path
-        required: true
-        type: string
-        description: ID del usuario
-    responses:
-      200:
-        description: Lista de posts favoritos del usuario
-        schema:
-          type: array
-          items:
-            $ref: '#/definitions/Post'
-    """
-    favoritos = Favorito.query.filter_by(id_usuario=id_usuario).all()
+@favorito_bp.route('favoritos/<string:id_usuario>')
+class FavoritoResourceID(MethodView):
 
-    if not favoritos:
-        return jsonify({"error": "Favorito no encontrado"}), HTTPStatus.NOT_FOUND
-    
-    posts = [fav.post for fav in favoritos]
+  @favorito_bp.arguments(FavoritoSchema)          
+  @favorito_bp.response(HTTPStatus.OK, FavoritoSchema)
+  #@jwt_required()
+  def get(self, id_favorito):
+    """ Consultar un Post favorito por su ID"""
+    favorito = Favorito.query.filter_by(id_favorito=id_favorito).first()
+    if not favorito:
+      smorest_abort(HTTPStatus.NOT_FOUND, message="No existe un post favorito con ese ID")
+    return favorito    
 
-    from schemas.post_schema import PostSchema
-    post_schema = PostSchema(many=True)
-
-    return jsonify(post_schema.dump(posts)), HTTPStatus.OK
 
 
 

@@ -16,10 +16,6 @@ from flask.views import MethodView
 
 post_bp = Blueprint('post', __name__, description='Operaciones con Post')
 
-# Esquemas para Serializacion/Deserializacion
-post_schema   = PostSchema()
-posts_schemas = PostSchema(many=True)
-
 
 #---------------------- CRUD de los Posts con paginacion --------------------------#
 from schemas.post_schema import PaginationSchema, PaginatedPostsSchema
@@ -68,8 +64,8 @@ class PostResource(MethodView):
             smorest_abort(HTTPStatus.NOT_FOUND, message="No existe un pais con ese ID")           
 
 
-          # Validar existencia del usuario
-          usuario = Usuario.query.filter_by(id_usuario=post_data.id_usuario).first()
+          # Validar existencia del usuario          
+          usuario = db.session.get(Usuario, post_data.id_usuario )
           if not usuario:
              smorest_abort(HTTPStatus.NOT_FOUND, message="No existe un usuario con ese ID")
 
@@ -113,7 +109,7 @@ class PostResourceID(MethodView):
    def get(self, id_post):
     """ Consultar un Post por su ID"""
        
-    post = Post.query.filter_by(id_post=id_post).first()
+    post = db.session.get(Post, id_post)
     if not post:
        smorest_abort(HTTPStatus.NOT_FOUND, message='No existe ninnug Post con ese ID')
 
@@ -122,103 +118,71 @@ class PostResourceID(MethodView):
 
 
 #------------------------ Actualizar o Editar  un Post -----------------------------#
-@post_bp.route('/update/<string:id_post>', methods=['PUT'])
-#@jwt_required()
-def actualizar_post(id_post):
-  """
-    Actualizar Post
+from schemas.post_schema import PostUpdateSchema
+@post_bp.route("/posts/<string:id_post>")
+class PostItemResource(MethodView):
+    @jwt_required()
+    @post_bp.arguments(PostUpdateSchema)  
+    @post_bp.response(HTTPStatus.OK, PostSchema)  
+    def put(self, update_data, id_post):
+      """ Actualizar un Post existente"""
+      
+      id_usuario = get_jwt_identity()
+      post = db.session.get(Post, id_post)
 
-    Permite a un usuario autenticado editar un Post creado.
-    ---
-    tags:
-      - Posts
-    security:
-      - BearerAuth: []
-    parameters:
-      - name: body
-        in: body
-        required: true
-        schema:
-          $ref: '#/definitions/Post'
-    responses:
-      201:
-        description: Post actualizado exitosamente
-        schema:
-          $ref: '#/definitions/Post'
-      400:
-        description: Error al editar el post
-    """
+      if not post:
+        smorest_abort(HTTPStatus.NOT_FOUND, message="Post no encontrado")
 
-  id_usuario = get_jwt_identity()
-  post = db.session.get(Post, id_post)
+        if post.id_usuario != id_usuario:
+           abort(HTTPStatus.FORBIDDEN, message="No tienes permisos para editar este post")
 
-  if not post:
-    return jsonify({"mensaje": "Post no encontrado"}), HTTPStatus.NOT_FOUND
-  
-  if post.id_usuario != id_usuario:
-    return jsonify({"mensaje": "No tienes permisos para editar este post"}), HTTPStatus.FORBIDDEN
+        try:
+            if update_data.get("id_pais"):
+                post.id_pais = update_data["id_pais"]
+            if update_data.get("titulo"):
+                post.titulo = update_data["titulo"]
+            if update_data.get("contenido"):
+                post.contenido = update_data["contenido"]
 
-  try:
-    json_data = request.get_json()
-    if not json_data:
-       return jsonify({"mensaje":"No hay datos proveidos"}), HTTPStatus.BAD_REQUEST
-    datos = post_schema.load(json_data, session=db.session, partial=True)
+            db.session.commit()
+            return post
 
-    post.id_pais   = datos.pais      or post.id_pais
-    post.titulo    = datos.titulo    or post.titulo
-    post.contenido = datos.contenido or post.contenido
+        except Exception as err:
+            db.session.rollback()
+            abort(HTTPStatus.BAD_REQUEST, message=f"Error al actualizar el post: {str(err)}")
 
-    db.session.commit()
 
-    return jsonify(post_schema.dump(post)), HTTPStatus.OK
-
-  except ValidationError as e:
-    return jsonify({"error": e.messages}), HTTPStatus.BAD_REQUEST
-  except Exception as err:
-    return jsonify({"error": str(err)}), HTTPStatus.BAD_REQUEST              
 
 
 
 
 # ------------------------ Endpoint para eliminar un Post ---------------------------- #
-@post_bp.route('/del/<string:id_post>', methods=['DELETE'])
-#@jwt_required()
-def eliminar_post(id_post):
-    """
-    Eliminar un post
+from schemas.post_schema import PostUpdateSchema
+@post_bp.route("/posts/<string:id_post>")
+class PostItemResource(MethodView):
+    @jwt_required()
+    @post_bp.arguments(PostUpdateSchema)  
+    @post_bp.response(HTTPStatus.OK, PostSchema)  
+    def put(self, update_data, id_post):
+      """ Actualizar un Post existente"""
+      
+      id_usuario = get_jwt_identity()
+      post = db.session.get(Post, id_post)
 
-    Permite a un usuario autenticado eliminar su propio post.
-    ---
-    tags:
-      - Posts
-    security:
-      - BearerAuth: []
-    parameters:
-      - name: id_post
-        in: path
-        type: string
-        required: true
-        description: ID del post a eliminar
-    responses:
-      200:
-        description: Post eliminado exitosamente
-      403:
-        description: No tienes permisos para eliminar este post
-      404:
-        description: Post no encontrado
-    """
-    id_usuario = get_jwt_identity()
-    post = Post.query.get(id_post)
+      if not post:
+        smorest_abort(HTTPStatus.NOT_FOUND, message="Post no encontrado")
 
-    if not post:
-        return jsonify({"mensaje": "Post no encontrado"}), HTTPStatus.NOT_FOUND
+        if post.id_usuario != id_usuario:
+           abort(HTTPStatus.FORBIDDEN, message="No tienes permisos para eliminar este post")
 
-    if post.id_usuario != id_usuario:
-        return jsonify({"mensaje": "No tienes permisos para eliminar este post"}), HTTPStatus.FORBIDDEN
-
-    db.session.delete(post)
-    db.session.commit()
-    return jsonify({"mensaje": "Post eliminado exitosamente"}), HTTPStatus.OK
+      try:
+        db.session.delete(post)
+        db.session.commit()
+        return '', HTTPStatus.NO_CONTENT
+      
+      except Exception as err:
+         db.session.rollback()
+         smorest_abort(HTTPStatus.BAD_REQUEST, message=f"Error al eliminar el post: {str(err)}")
 
 
 

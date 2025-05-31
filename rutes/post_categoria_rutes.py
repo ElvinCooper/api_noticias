@@ -1,71 +1,33 @@
-from flask import request, jsonify
-from flask_smorest import Blueprint
+from flask_smorest import Blueprint, abort as smorest_abort
 from http import HTTPStatus
 from schemas.post_categoria_schema import PostCategoriaSchema
 from modelos.post_categoria_model import PostCategoria
 from flask_jwt_extended import jwt_required
+from flask.views import MethodView
+from extensions import db
 
 
 
 post_cat_bp = Blueprint('postCategoria', __name__, description='Operaciones con PostCategoria')
-post_cat_schema = PostCategoriaSchema()
-post_cats_schemas = PostCategoriaSchema(many=True)
 
 
 
-#--------------- Consultar todos los datos de la tabla ------------------------------#
-@post_cat_bp.route('/postcat', methods=['GET'])
-#@jwt_required()
-def obtener_posts_categorias():
-    """
-    Obtener todas las parejas Post_Categoria
 
-    Este endpoint retorna la lista completa de Post_Categorías existentes en el sistema.
-    ---
-    tags:
-      - Post_Categoria
-    responses:
-      200:
-        description: Lista de parejes Post-Categorías
-        schema:
-          type: array
-          items:
-            $ref: '#/definitions/Post_categorias'
-    """
-    post_cat = PostCategoria.query.all()
-    return jsonify(post_cats_schemas(post_cat)), HTTPStatus.OK
 
 
 
 
 # ----------------------------  Consultar un post_categoria por su ID  --------------------------------#
-@post_cat_bp.route('/postcat/<string:id_post>', methods=['GET'])
-#@jwt_required()
-def obtener_post_cat_por_id(id_post):
-    """
-    Obtener una una pareja Post_Categoria por ID
+@post_cat_bp.route('/postcat/<string:id_post>')
+class ResourcePostCat(MethodView):
 
-    Este endpoint permite consultar los detalles de un Post_Categoría específica usando su ID.
-    ---
-    tags:
-      - Post_Categoria
-    parameters:
-      - name: id_post
-        in: path
-        type: string
-        required: true
-        description: ID del Post_Categoría a consultar
-    responses:
-      200:
-        description: Pareja encontrada encontrada
-        schema:
-          $ref: '#/definitions/Post_categorias'
-      404:
-        description: Post_Categoría no encontrada
-    """
-    post_cat = PostCategoria.query.filter_by(id_categoria=id_post).first()
+  @post_cat_bp.response(HTTPStatus.OK, PostCategoriaSchema(many=True))
+  #@jwt_required()
+  def get(self, id_post):
+    """ Consultar una pareja Post-Categoria por su ID"""
+    postcats = db.session.get(PostCategoria, id_post)
+    if not postcats:
+      smorest_abort(HTTPStatus.NOT_FOUND, message="No existe ninguna categoria asociada a ese Post")
 
-    if not post_cat:
-        return jsonify({"error": "Pareja Post_Categoria no encontrada"}), HTTPStatus.NOT_FOUND
-    
-    return jsonify(post_cat_schema.dump(post_cat)), HTTPStatus.OK
+    return postcats  
+

@@ -58,3 +58,16 @@ class PaginatedPostsSchema(SQLAlchemyAutoSchema):
     per_page = fields.Int()
     has_next = fields.Bool()
     has_prev = fields.Bool()    
+
+
+
+class PostUpdateSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = Post
+        load_instance = True
+        sqla_session = db.session
+        partial = True  
+
+    titulo    = fields.Str(required=False)
+    contenido = fields.Str(required=False)
+    id_pais   = fields.Str(required=False)

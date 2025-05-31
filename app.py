@@ -6,7 +6,6 @@ from flask_migrate import Migrate
 from dotenv import load_dotenv
 import os
 from config import TestingConfig, ProductionConfig, DevelopmentConfig
-
 from rutes.user_rutes import usuario_bp
 from rutes.post_rutes import post_bp
 from rutes.favorito_rutes import favorito_bp
@@ -14,7 +13,6 @@ from rutes.categoria_rutes import categorias_bp
 from rutes.paises_rutes import pais_bp
 from rutes.post_categoria_rutes import post_cat_bp
 from rutes.multimedia_rutes import multimedia_bp
-from sqlite_config import enable_sqlite_foreign_keys 
 
 
 def create_app(testing=True):
@@ -36,7 +34,7 @@ def create_app(testing=True):
 
     # CORS dinámico desde config
     CORS(app, resources={
-        r"/api/*": {
+        r"/v1/*": {
             "origins": app.config["FRONTEND_URL"],
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
             "allow_headers": ["Content-Type", "Authorization"],
@@ -45,18 +43,33 @@ def create_app(testing=True):
     })
 
     # Inicializar API y extensiones
+    from apispec.ext.marshmallow import MarshmallowPlugin
+    from apispec import APISpec
+
+
+    def custom_schema_name_resolver(schema):
+        return f"{schema.__class__.__module__}.{schema.__class__.__name__}"
+
+    app.config['APISPEC_SPEC'] = APISpec(
+        title="API Noticias",
+        version="1.0.0",
+        openapi_version="3.0.2",
+        plugins=[MarshmallowPlugin(schema_name_resolver=custom_schema_name_resolver)]
+    )
+
+    
     api = Api(app)
     init_extensions(app)
     Migrate(app, db)
 
     # Registrar blueprints
-    api.register_blueprint(usuario_bp, url_prefix='/api')
-    api.register_blueprint(post_bp, url_prefix='/api')
-    api.register_blueprint(favorito_bp, url_prefix='/api')
-    api.register_blueprint(categorias_bp, url_prefix='/api')
-    api.register_blueprint(pais_bp, url_prefix='/api')
-    api.register_blueprint(post_cat_bp, url_prefix='/api')
-    api.register_blueprint(multimedia_bp, url_prefix='/api')
+    api.register_blueprint(usuario_bp, url_prefix='/api/v1')
+    api.register_blueprint(post_bp, url_prefix='/api/v1')
+    api.register_blueprint(favorito_bp, url_prefix='/api/v1')
+    api.register_blueprint(categorias_bp, url_prefix='/api/v1')
+    api.register_blueprint(pais_bp, url_prefix='/api/v1')
+    api.register_blueprint(post_cat_bp, url_prefix='/api/v1')
+    api.register_blueprint(multimedia_bp, url_prefix='/api/v1')   
 
     # JWT & comandos CLI
     from auth.jwt_callbacks import jwt

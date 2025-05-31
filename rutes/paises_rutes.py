@@ -9,7 +9,7 @@ from flask_jwt_extended import jwt_required
 from flask.views import MethodView
 
 
-pais_bp = Blueprint('pais', __name__, description='Operaciones con Pais')
+pais_bp = Blueprint('pais', __name__, description='Operaciones con Paises')
 
 pais_schema = PaisSchema()
 paises_schema = PaisSchema(many=True)
@@ -44,7 +44,7 @@ class PaisResource(MethodView):
 
 
 # ----------------------------  Consultar una pais por su ID  --------------------------------#
-@pais_bp.route("/pais/<string:id_pais>")
+@pais_bp.route("/paises/<string:id_pais>")
 class PaisResourceId(MethodView):
 
     @pais_bp.response(HTTPStatus.OK, PaisSchema)

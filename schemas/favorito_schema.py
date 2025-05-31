@@ -10,6 +10,7 @@ class FavoritoSchema(SQLAlchemyAutoSchema):
         load_instance = True
         include_relationships = False
         sqla_session = db.session
+        schema_name="FavoritoSimpleSchema"
     
     id_usuario = fields.Str(required=True, load_only=True)  # UUID para deserialización en las solicitudes post y put)
     id_post    = fields.Str(required=True, load_only=True)     
