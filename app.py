@@ -13,6 +13,12 @@ from rutes.categoria_rutes import categorias_bp
 from rutes.paises_rutes import pais_bp
 from rutes.post_categoria_rutes import post_cat_bp
 from rutes.multimedia_rutes import multimedia_bp
+from apispec.ext.marshmallow.openapi import OpenAPIConverter
+
+
+# Resolucion de Schemas global 
+def schema_name_resolver(schema):
+    return schema.__class__.__name__
 
 
 def create_app(testing=True):
@@ -58,7 +64,7 @@ def create_app(testing=True):
     )
 
     
-    api = Api(app)
+    api = Api(app, spec_kwargs={"schema_name_resolver": schema_name_resolver})
     init_extensions(app)
     Migrate(app, db)
 
