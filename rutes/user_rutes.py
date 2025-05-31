@@ -1,4 +1,3 @@
-from flask import request, jsonify
 from flask_smorest import Blueprint, abort
 from modelos.user_model import Usuario
 from modelos.rol_model import Rol
@@ -223,7 +222,7 @@ class UsuarioResource(MethodView):
             """ Validar usuario administrador """
             claims = get_jwt()
             if claims.get("rol") != "admin":
-                return jsonify({"error": "Acceso denegado"}), HTTPStatus.FORBIDDEN
+                abort(HTTPStatus.FORBIDDEN, message="Acceso denegado")
             
             user_id = get_jwt_identity()
             usuario = Usuario.query.filter_by(id_usuario=user_id).first()

@@ -19,6 +19,12 @@ class PaisSchema(SQLAlchemyAutoSchema):
     
 
 class PaisCreateSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = Pais
+        load_instance = True
+        sqla_session = db.session
+        schema_name= "PaisCreateSchema"
+
     id_pais = fields.Str(required=True)
     nombre_pais = fields.Str(required=True, validate=validate.Length(max=50))
     abrebiatura_pais = fields.Str(required=True, validate=validate.Length(max=3))    

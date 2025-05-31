@@ -31,6 +31,7 @@ class BaseOutputSchema(SQLAlchemyAutoSchema):
         load_instance = True
         sqla_session = None
         exclude = ("password", "acces_token", "refresh_token") 
+        schema_name="BaseOutputSchema"
 
 
 # ------------------------  Schema para respuesta a peticion de listar usuarios ---------------------------------#    
@@ -172,9 +173,3 @@ class AdminMeSchema(SQLAlchemyAutoSchema):
     email = fields.Email()
     rol = fields.Nested(RolSchema, only=("descripcion",))
     fecha_registro = fields.Date()
-
-
-# --------------------- Schema para documentar errores --------------------------#
-class ErrorSchema(Schema):
-    success = fields.Boolean(load_default=False)
-    message = fields.String(required=True)   

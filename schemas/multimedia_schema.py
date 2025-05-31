@@ -9,6 +9,7 @@ class MultimediaSchema(SQLAlchemyAutoSchema):
         model = Multimedia
         load_instance = True
         sqla_session = db.session
+        schema_name= "MulimediaSchema"
        
 
     id_multimedia  = fields.Str(dump_only=True)  # UUID como string

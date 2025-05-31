@@ -67,6 +67,7 @@ class PostUpdateSchema(SQLAlchemyAutoSchema):
         load_instance = True
         sqla_session = db.session
         partial = True  
+        schema_name= "PostUpdateSchema"
 
     titulo    = fields.Str(required=False)
     contenido = fields.Str(required=False)
