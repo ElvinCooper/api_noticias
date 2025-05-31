@@ -5,7 +5,7 @@ on:
     branches: ["main"]
 
 jobs: 
-  notificando despliegue:
+  notificando-despliegue:
     runs-on: ubuntu_latest
     steps:
      - run: echo "Notificacion de despliegue"
