@@ -9,7 +9,6 @@ jobs:
     runs-on: ubuntu_latest
     steps:
      - run: echo "Notificacion de despliegue"
-     - run: ifconfig
      - run: echo "Estamos en produccion"
 
 
