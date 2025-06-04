@@ -9,14 +9,14 @@ from extensions import db
 from http import HTTPStatus
 from modelos.pais_model import Pais
 from flask.views import MethodView
-
+from schemas.post_schema import PaginationSchema, PaginatedPostsSchema
 
 
 post_bp = Blueprint('post', __name__, description='Operaciones con Post')
 
 
+
 #---------------------- CRUD de los Posts con paginacion --------------------------#
-from schemas.post_schema import PaginationSchema, PaginatedPostsSchema
 @post_bp.route('/posts')
 class PostResource(MethodView):
    
@@ -99,7 +99,7 @@ class PostResource(MethodView):
 
 
 #------------------------ Enpoint consultar un post con su ID ----------------------#
-@post_bp.route('post/<string:id_post>')
+@post_bp.route('/post/<string:id_post>')
 class PostResourceID(MethodView):
    
    @post_bp.response(HTTPStatus.OK, PostSchema)
@@ -117,8 +117,9 @@ class PostResourceID(MethodView):
 
 #------------------------ Actualizar o Editar  un Post -----------------------------#
 from schemas.post_schema import PostUpdateSchema
-@post_bp.route("/posts/<string:id_post>")
-class PostItemResource(MethodView):
+
+@post_bp.route("/posts/actualizar/<string:id_post>")
+class PostUpdateResource(MethodView):
     @jwt_required()
     @post_bp.arguments(PostUpdateSchema)  
     @post_bp.response(HTTPStatus.OK, PostSchema)  
@@ -156,13 +157,14 @@ class PostItemResource(MethodView):
 
 # ------------------------ Endpoint para eliminar un Post ---------------------------- #
 from schemas.post_schema import PostUpdateSchema
-@post_bp.route("/posts/<string:id_post>")
-class PostItemResource(MethodView):
+
+@post_bp.route("/posts/eliminar/<string:id_post>")
+class PostDeleteResource(MethodView):
     @jwt_required()
     @post_bp.arguments(PostUpdateSchema)  
     @post_bp.response(HTTPStatus.OK, PostSchema)  
-    def put(self, update_data, id_post):
-      """ Actualizar un Post existente"""
+    def delete(self, delete_data, id_post):
+      """ Eliminar un Post existente"""
       
       id_usuario = get_jwt_identity()
       post = db.session.get(Post, id_post)

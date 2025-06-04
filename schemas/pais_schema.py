@@ -10,6 +10,7 @@ class PaisSchema(SQLAlchemyAutoSchema):
         model = Pais
         load_instance = True
         sqla_session = db.session
+        schema_name="PaisSchema"
         
 
     id_pais = fields.Str(dump_only=True)

@@ -14,19 +14,19 @@ from rutes.paises_rutes import pais_bp
 from rutes.post_categoria_rutes import post_cat_bp
 from rutes.multimedia_rutes import multimedia_bp
 from apispec.ext.marshmallow.openapi import OpenAPIConverter
+from sqlite_config import enable_sqlite_foreign_keys 
 
 
-# Resolucion de Schemas global 
-def schema_name_resolver(schema):
-    return schema.__class__.__name__
 
-
-def create_app(testing=True):
+def create_app(testing=False):
     app = Flask(__name__)
     load_dotenv()
 
     # Cargar configuración por entorno
-    env = os.getenv("FLASK_ENV")
+    env = os.getenv("FLASK_ENV", "development")
+
+     # Activar soporte de claves foráneas en SQLite
+    enable_sqlite_foreign_keys()
 
     app.config['SQLALCHEMY_ECHO'] = True  # Para que muestre los Querys que se ejecutan.
 
@@ -48,24 +48,32 @@ def create_app(testing=True):
         }
     })
 
+    def schema_name_resolver(schema):
+        return schema.__class__.__name__
+
+
     # Inicializar API y extensiones
-    from apispec.ext.marshmallow import MarshmallowPlugin
-    from apispec import APISpec
+    # from apispec.ext.marshmallow import MarshmallowPlugin
+    # from apispec import APISpec
+    init_extensions(app)
+
+    app.config.update({
+        'API_TITLE': 'API Noticias',
+        'API_VERSION': 'v1',
+        'OPENAPI_VERSION': '3.0.2',
+    })
 
 
-    def custom_schema_name_resolver(schema):
-        return f"{schema.__class__.__module__}.{schema.__class__.__name__}"
-
-    app.config['APISPEC_SPEC'] = APISpec(
-        title="API Noticias",
-        version="1.0.0",
-        openapi_version="3.0.2",
-        plugins=[MarshmallowPlugin(schema_name_resolver=custom_schema_name_resolver)]
-    )
+    # app.config['APISPEC_SPEC'] = APISpec(
+    #     title="API Noticias",
+    #     version="1.0.0",
+    #     openapi_version="3.0.2",
+    #     plugins=[MarshmallowPlugin(schema_name_resolver=schema_name_resolver)]
+    # )
 
     
-    api = Api(app, spec_kwargs={"schema_name_resolver": schema_name_resolver})
-    init_extensions(app)
+    api = Api(app)
+    
     Migrate(app, db)
 
     # Registrar blueprints
@@ -86,7 +94,7 @@ def create_app(testing=True):
 
     return app
 
-app = create_app()
+app = create_app(testing=False)
 
 if __name__ == '__main__':
     app.run()

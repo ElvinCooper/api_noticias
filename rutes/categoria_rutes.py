@@ -11,9 +11,6 @@ from schemas.Error_schemas import ErrorSchema
 
 categorias_bp = Blueprint('categorias', __name__, description="Operaciones con Categorias")
 
-categoria_schema = CategoriaSchema()
-categorias_schemas = CategoriaSchema(many=True)
-
 
 # ----------------------------  CRUD Categorias  --------------------------------#
 @categorias_bp.route("/categoria")
@@ -25,6 +22,7 @@ class CategoriaResource(MethodView):
         """ Consultar todas la categorias"""
         categorias = Categoria.query.all()        
         return categorias
+
 
     @categorias_bp.arguments(CategoriaSchema)
     @categorias_bp.response(HTTPStatus.CREATED, CategoriaSchema)    

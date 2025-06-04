@@ -9,6 +9,7 @@ class CategoriaSchema(SQLAlchemyAutoSchema):
         model = Categoria
         load_instance = True
         sqla_session = db.session
+        schema_name="CategoriaSchema"
         
 
     id_categoria  = fields.Str(dump_only=True)

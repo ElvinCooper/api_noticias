@@ -1,4 +1,4 @@
-from marshmallow import fields, validate, Schema
+from marshmallow import fields, validate
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, auto_field
 from modelos.user_model import Usuario
 from schemas.rol_schema import RolSchema

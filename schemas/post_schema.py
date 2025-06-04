@@ -17,6 +17,7 @@ class PostSchema(SQLAlchemyAutoSchema):
         include_relationships = True
         sqla_session = db.session
         exclude =('favoritos',)
+        schema_name="PostSchema"
 
     id_post = fields.Str(dump_only=True)
     titulo  = fields.Str(required=True, validate=validate.Length(max=100))
@@ -25,7 +26,7 @@ class PostSchema(SQLAlchemyAutoSchema):
     id_pais = fields.Str(required=True, load_only=True)  # UUID como string para deserialización
     fecha_publicacion = fields.DateTime(dump_only=True)  # Solo para serialización (generado por DB)
     visible = fields.Boolean(load_default=True)  # Por defecto True
-    autor = fields.Nested(UserSchema, exclude=('posts',), dump_only=True)  # Relación con Usuario
+    autor = fields.Nested(UserSchema, only=("id_usuario", "nombre", "email", "rol"), dump_only=True)  # Relación con Usuario
     pais = fields.Nested(PaisSimpleSchema, dump_only=True)  # Relación con Pais
     favoritos = fields.Nested(FavoritoSchema, many=True, dump_only=True)  # Relación uno a muchos
     

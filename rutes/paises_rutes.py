@@ -11,9 +11,6 @@ from flask.views import MethodView
 
 pais_bp = Blueprint('pais', __name__, description='Operaciones con Paises')
 
-pais_schema = PaisSchema()
-paises_schema = PaisSchema(many=True)
-
 
 #---------------- CRUD de Paises -------------------#
 
@@ -34,12 +31,15 @@ class PaisResource(MethodView):
     def post(self, pais_data):
         """ Registrar un nuevo Pais """
         # verfificar si ya existe un pais con esa descripcion
-        if Pais.query.filter_by(nombre_pais=pais_data.nombre_pais):
+        if Pais.query.filter_by(nombre_pais=pais_data.nombre_pais).first():
             abort(HTTPStatus.BAD_REQUEST, message="Ya existe un pais con ese nombre")
 
-        db.session.add(pais_data)    
+
+        nuevo_pais= pais_data
+        db.session.add(nuevo_pais)
         db.session.commit()
-        return pais_data
+        
+        return nuevo_pais
 
 
 
