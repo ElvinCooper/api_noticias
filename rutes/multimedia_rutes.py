@@ -3,7 +3,7 @@ from extensions import db
 from http import HTTPStatus
 from modelos.multimedia_model import Multimedia
 from marshmallow.exceptions import ValidationError
-from schemas.pais_schema import MultimediaSchema
+from schemas.multimedia_schema import MultimediaSchema
 from schemas.Error_schemas import ErrorSchema
 from flask_jwt_extended import jwt_required
 from flask.views import MethodView
@@ -27,21 +27,24 @@ class MultimediaResource(MethodView):
         return multimedia
 
 
-    @multimedia_bp.route("/multimedia")
-    class MultimediaList(MethodView):
-        #@jwt_required()
-        @multimedia_bp.arguments(MultimediaSchema)
-        @multimedia_bp.response(201, MultimediaSchema)
-        def post(self, data):
-            """ Registrar un nuevo medio """
-            # Verificar si ya existe uno con el mismo nombre
-            if Multimedia.query.filter_by(nombre_archivo=data.nombre_archivo).first():
-                smorest_abort(400, message="Ya existe un archivo con ese nombre.")
-        
+    
+    
+    
+    @multimedia_bp.arguments(MultimediaSchema)
+    @multimedia_bp.response(201, MultimediaSchema)
+    #@jwt_required()
+    def post(self, data):
+        """ Registrar un nuevo medio """
+        # Verificar si ya existe uno con el mismo nombre
+        if Multimedia.query.filter_by(nombre_archivo=data.nombre_archivo).first():
+            smorest_abort(400, message="Ya existe un archivo con ese nombre.")
+    
 
-            db.session.add(data)
-            db.session.commit()
-            return data
+        nuevo_multimedia = Multimedia(**data)
+        db.session.add(nuevo_multimedia)
+        db.session.commit()
+
+        return nuevo_multimedia
         
 
 #--------------------- Endpoint para consultar un recurso multimedia por su id ----------------------#
@@ -58,7 +61,7 @@ class MultimediaResourceID(MethodView):
         """ Consultar un recurso por su ID """
         multimedia = Multimedia.query.filter_by(id_multimedia=id_multimedia).first()
         if not multimedia:
-            smorest_abort(HTTPStatus.NOT_FOUND, mesage="Recurso no encontrado")
+            smorest_abort(HTTPStatus.NOT_FOUND, message="Recurso no encontrado")
         return multimedia
 
 

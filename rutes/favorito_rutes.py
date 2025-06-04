@@ -29,6 +29,7 @@ class FavoritoResource(MethodView):
 
       return posts      
 
+
     @favorito_bp.arguments(FavoritoSchema)          
     @favorito_bp.response(HTTPStatus.CREATED, FavoritoSchema)
     @favorito_bp.alt_response(HTTPStatus.BAD_REQUEST, schema=ErrorSchema, description="Falta el campo id_post", example={"success": False, "message": "El campo 'id_post' es obligatorio"})
@@ -75,8 +76,8 @@ class FavoritoResourceID(MethodView):
 
 from schemas.favorito_schema import FavoritoInputSchema, FavoritoResponseSchema
 
-@favorito_bp.route("/favorito")
-class FavoritoResource(MethodView):
+@favorito_bp.route("/favorito/crear")
+class MarcarFavoritoResource(MethodView):
 
     @jwt_required()
     @favorito_bp.arguments(FavoritoInputSchema)
@@ -111,8 +112,8 @@ class FavoritoResource(MethodView):
 
 #------------------------------------ Enpoint para eliminar un favorito ---------------------------------------#
 
-@favorito_bp.route("/favorito")
-class FavoritoResource(MethodView):
+@favorito_bp.route("/favorito/eliminar")
+class DeleteFavoritoResource(MethodView):
 
     @jwt_required()
     @favorito_bp.arguments(FavoritoInputSchema)
@@ -120,7 +121,7 @@ class FavoritoResource(MethodView):
     @favorito_bp.alt_response(HTTPStatus.BAD_REQUEST, schema=ErrorSchema, description="Falta el campo id_post", example={"success": False, "message": "El campo 'id_post' es obligatorio"})
     @favorito_bp.alt_response(HTTPStatus.NOT_FOUND, schema=ErrorSchema, description="Post no encontrado", example={"success": False, "message": "El post no existe"})
     def post(self, data):
-        """Marcar un post como favorito"""
+        """Eliminar un post como favorito"""
         id_post = data.get("id_post")
         id_usuario = get_jwt_identity()
     

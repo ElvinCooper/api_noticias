@@ -9,6 +9,7 @@ class PostCategoriaSchema(SQLAlchemyAutoSchema):
         load_instance = True
         include_relationships = True
         sqla_session = db.session
+        schema_name="PostCategoriaSchema"
 
     id_post      = fields.Str(required=True, load_only=True)
     id_categoria = fields.Str(required=True, load_only=True)

@@ -112,7 +112,9 @@ class UsuarioResource(MethodView):
 
 
 
-    # -------------------------  Endpoint para hacer Login ------------------------------------#
+# -------------------------  Endpoint para hacer Login ------------------------------------#
+@usuario_bp.route('/usuarios')
+class LoginResource(MethodView):
 
     @usuario_bp.arguments(LoginSchema)
     @usuario_bp.response(HTTPStatus.OK, LoginResponseSchema)
@@ -131,111 +133,111 @@ class UsuarioResource(MethodView):
 
         try:
             
-          # Generar token de autenticacion
-          additional_claims = {"rol": usuario.rol.descripcion}
-          acces_token   = create_access_token(identity=usuario.id_usuario, additional_claims=additional_claims)
-          refresh_token = create_refresh_token(identity=usuario.id_usuario)
+            # Generar token de autenticacion
+            additional_claims = {"rol": usuario.rol.descripcion}
+            acces_token   = create_access_token(identity=usuario.id_usuario, additional_claims=additional_claims)
+            refresh_token = create_refresh_token(identity=usuario.id_usuario)
 
-          return { 
-              "acces_token": acces_token,
-              "refresh_token": refresh_token,
-              "usuario": usuario,
-              "message": "Login exitoso"
-          }
+            return { 
+                "acces_token": acces_token,
+                "refresh_token": refresh_token,
+                "usuario": usuario,
+                "message": "Login exitoso"
+            }
         except Exception as e:
             abort(HTTPStatus.INTERNAL_SERVER_ERROR, message="Error al generar token")            
 
 
-    #------------------ Endpoint para renovar los tokens -------------------#
-        
-    @usuario_bp.route('/auth/refresh')
-    class RefreshToken(MethodView):
-        @jwt_required()
-        @usuario_bp.response(HTTPStatus.OK, TokenRefreshResponseSchema)
-        def post(self):
-            """ Renovar los tokens """
-            jwt_payload = get_jwt()
-            jti = jwt_payload['jti']
-            identity = get_jwt_identity()
-
-            # verificar si el token esta revocado
-            if TokenBlocklist.query.filter_by(jti=jti).first():
-                abort(HTTPStatus.UNAUTHORIZED, message="Refresh token revocado")
-
-            # Revocar el token actual
-            db.session.add(TokenBlocklist(jti=jti))
-            db.session.commit()
-
-            # Generar nuevos tokens
-            new_access_token = create_access_token(identity=identity)
-            new_refresh_token = create_refresh_token(identity=identity)
-
-            return {
-                "acces_token": new_access_token,
-                "refresh_token": new_refresh_token
-            }
-
-
-
-    # ------------------ Endpoint para Logout -----------------------#
+#------------------ Endpoint para renovar los tokens -------------------#
     
-    @usuario_bp.route('/auth/logout')
-    class logout(MethodView):
-        @jwt_required()        
-        @usuario_bp.response(HTTPStatus.OK, LogoutResponseSchema)
-        def post(self):
-            """ Logout usuarios  """
-            jti =get_jwt['jti']
-            db.session.add(TokenBlocklist(jti=jti))
-            db.session.commit()
-            return {"mensaje": "Sesion cerrada con exito"}
+@usuario_bp.route('/auth/refresh')
+class RefreshToken(MethodView):
+    @jwt_required()
+    @usuario_bp.response(HTTPStatus.OK, TokenRefreshResponseSchema)
+    def post(self):
+        """ Renovar los tokens """
+        jwt_payload = get_jwt()
+        jti = jwt_payload['jti']
+        identity = get_jwt_identity()
+
+        # verificar si el token esta revocado
+        if TokenBlocklist.query.filter_by(jti=jti).first():
+            abort(HTTPStatus.UNAUTHORIZED, message="Refresh token revocado")
+
+        # Revocar el token actual
+        db.session.add(TokenBlocklist(jti=jti))
+        db.session.commit()
+
+        # Generar nuevos tokens
+        new_access_token = create_access_token(identity=identity)
+        new_refresh_token = create_refresh_token(identity=identity)
+
+        return {
+            "acces_token": new_access_token,
+            "refresh_token": new_refresh_token
+        }
+
+
+
+# ------------------ Endpoint para Logout -----------------------#
+
+@usuario_bp.route('/auth/logout')
+class logoutRosource(MethodView):
+    @jwt_required()        
+    @usuario_bp.response(HTTPStatus.OK, LogoutResponseSchema)
+    def post(self):
+        """ Logout usuarios  """
+        jti =get_jwt['jti']
+        db.session.add(TokenBlocklist(jti=jti))
+        db.session.commit()
+        return {"mensaje": "Sesion cerrada con exito"}
         
         
 
 
-    # ------------------ Endpoint para obtener usuario actual ------------------
-  
-    @usuario_bp.route('/auth/me')
-    class UsuarioAutenticado(MethodView):
-        @jwt_required()
-        @usuario_bp.response(HTTPStatus.OK, MeResponseSchema)
-        def get(self):
-            """ Consultar usuarios autenticado """
-            user_id = get_jwt_identity()
-            usuario = Usuario.query.filter_by(id_usuario=user_id).first()
+# ------------------ Endpoint para obtener usuario actual ------------------
 
-            if not usuario:
-                abort(HTTPStatus.NOT_FOUND, message="Usuario no encontrado")
+@usuario_bp.route('/auth/me')
+class AuthResource(MethodView):
+    @jwt_required()
+    @usuario_bp.response(HTTPStatus.OK, MeResponseSchema)
+    def get(self):
+        """ Consultar usuarios autenticado """
+        user_id = get_jwt_identity()
+        usuario = Usuario.query.filter_by(id_usuario=user_id).first()
 
-            return usuario
+        if not usuario:
+            abort(HTTPStatus.NOT_FOUND, message="Usuario no encontrado")
+
+        return usuario
 
 
 
-    #-----------  Endpoint para validar si la solicitud viene del administrador -----------#
-    
-    @usuario_bp.route('/admin/usuarios')
-    class SoloAdmin(MethodView):
+#-----------  Endpoint para validar si la solicitud viene del administrador -----------#
 
-        @jwt_required()
-        @usuario_bp.response(HTTPStatus.OK, AdminMeSchema)
-        def get(self):
-            """ Validar usuario administrador """
-            claims = get_jwt()
-            if claims.get("rol") != "admin":
-                abort(HTTPStatus.FORBIDDEN, message="Acceso denegado")
-            
-            user_id = get_jwt_identity()
-            usuario = Usuario.query.filter_by(id_usuario=user_id).first()
-            if not usuario:
-                abort(HTTPStatus.NOT_FOUND, message="Usuario no encontrado")
+@usuario_bp.route('/admin/usuarios')
+class AdminRosource(MethodView):
 
-            return usuario
+    @jwt_required()
+    @usuario_bp.response(HTTPStatus.OK, AdminMeSchema)
+    def get(self):
+        """ Validar usuario administrador """
+        claims = get_jwt()
+        if claims.get("rol") != "admin":
+            abort(HTTPStatus.FORBIDDEN, message="Acceso denegado")
+        
+        user_id = get_jwt_identity()
+        usuario = Usuario.query.filter_by(id_usuario=user_id).first()
+        if not usuario:
+            abort(HTTPStatus.NOT_FOUND, message="Usuario no encontrado")
+
+        return usuario
 
 
 
 # --------------------------------- Consultar un usuario por su id ---------------------------------#
 @usuario_bp.route('/usuarios/<string:id_usuario>')
-class UsuarioporID(MethodView):
+class UsuarioIDResource(MethodView):
     @jwt_required()    
 
     @usuario_bp.response(HTTPStatus.OK, UserSimpleSchema)
