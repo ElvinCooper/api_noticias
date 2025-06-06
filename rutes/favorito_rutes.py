@@ -17,7 +17,7 @@ favorito_bp = Blueprint('favoritos', __name__, description='Operaciones con Favo
 class FavoritoResource(MethodView):
     
     @favorito_bp.response(HTTPStatus.OK, FavoritoSchema(many=True))
-    #@jwt_required()
+    @jwt_required()
     def get(self):
       """ Consultar todos los Favoritos"""
       id_usuario = get_jwt_identity()
@@ -35,7 +35,7 @@ class FavoritoResource(MethodView):
     @favorito_bp.alt_response(HTTPStatus.BAD_REQUEST, schema=ErrorSchema, description="Falta el campo id_post", example={"success": False, "message": "El campo 'id_post' es obligatorio"})
     @favorito_bp.alt_response(HTTPStatus.INTERNAL_SERVER_ERROR, schema=ErrorSchema, description="Error interno del servidor", example={"success": False, "message": "Error interno del servidor"})
     
-    #@jwt_required()
+    @jwt_required()
     def get(self, favorito_data):
         """ Consultar para crear un nuevo favorito """
         # Verificar si ya estaba marcado como favorito
@@ -60,7 +60,7 @@ class FavoritoResourceID(MethodView):
   @favorito_bp.arguments(FavoritoSchema)          
   @favorito_bp.response(HTTPStatus.OK, FavoritoSchema)
   @favorito_bp.alt_response(HTTPStatus.INTERNAL_SERVER_ERROR, schema=ErrorSchema, description="Error interno del servidor", example={"success": False, "message": "Error interno del servidor"})
-  #@jwt_required()
+  @jwt_required()
   def get(self, id_favorito):
     """ Consultar un Post favorito por su ID"""
     favorito = Favorito.query.filter_by(id_favorito=id_favorito).first()

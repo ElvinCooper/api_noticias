@@ -1,0 +1,405 @@
+version: "1.1"
+name: "Flask API Testing Suite"
+env:
+  host: http://127.0.0.1:5000
+  test_user_email: test@example.com
+  test_user_password: testpass123
+  admin_email: elvin01cooper@gmail..com
+  admin_password: elvin12345
+
+config:
+  http:
+    baseURL: ${{env.host}}
+    headers:
+      Content-Type: application/json
+
+tests:
+  auth_flow:
+    name: "Autenticación y JWT"
+    steps:
+      - name: "Login Usuario"
+        http:
+          url: /api/v1/usuarios
+          method: POST
+          json:
+            email: ${{env.test_user_email}}
+            password: ${{env.test_user_password}}
+        check:
+          status: 200
+          json:
+            success: true
+            access_token:
+              type: string
+            refresh_token:
+              type: string
+        captures:
+          access_token:
+            json: $.access_token
+          refresh_token:
+            json: $.refresh_token
+
+      - name: "Verificar Token - Consultar Perfil"
+        http:
+          url: /api/v1/auth/me
+          method: GET
+          headers:
+            Authorization: Bearer ${{captures.access_token}}
+        check:
+          status: 200
+          json:
+            success: true
+
+      - name: "Refresh Token"
+        http:
+          url: /api/v1/auth/refresh
+          method: POST
+          headers:
+            Authorization: Bearer ${{captures.refresh_token}}
+        check:
+          status: 200
+          json:
+            access_token:
+              type: string
+        captures:
+          new_access_token:
+            json: $.access_token
+
+      - name: "Logout"
+        http:
+          url: /api/v1/auth/logout
+          method: POST
+          headers:
+            Authorization: Bearer ${{captures.access_token}}
+        check:
+          status: 200
+          json:
+            success: true
+
+  usuarios_crud:
+    name: "Gestión de Usuarios"
+    steps:
+      - name: "Login para obtener token"
+        http:
+          url: /api/v1/usuarios
+          method: POST
+          json:
+            email: ${{env.test_user_email}}
+            password: ${{env.test_user_password}}
+        check:
+          status: 200
+        captures:
+          user_token:
+            json: $.access_token
+
+      - name: "Listar Usuarios"
+        http:
+          url: /api/v1/usuarios
+          method: GET
+          headers:
+            Authorization: Bearer ${{captures.user_token}}
+        check:
+          status: 200
+          json:
+            success: true
+
+      - name: "Consultar Usuario por ID"
+        http:
+          url: /api/v1/usuarios/1
+          method: GET
+          headers:
+            Authorization: Bearer ${{captures.user_token}}
+        check:
+          status: [200, 404]
+
+      - name: "Actualizar Usuario"
+        http:
+          url: /api/v1/usuarios
+          method: PUT
+          headers:
+            Authorization: Bearer ${{captures.user_token}}
+          json:
+            nombre: "Usuario Actualizado"
+            email: ${{env.test_user_email}}
+        check:
+          status: 200
+          json:
+            success: true
+
+  posts_crud:
+    name: "Gestión de Posts"
+    steps:
+      - name: "Login"
+        http:
+          url: /api/v1/usuarios
+          method: POST
+          json:
+            email: ${{env.test_user_email}}
+            password: ${{env.test_user_password}}
+        check:
+          status: 200
+        captures:
+          token:
+            json: $.access_token
+
+      - name: "Crear Post"
+        http:
+          url: /api/v1/posts
+          method: POST
+          headers:
+            Authorization: Bearer ${{captures.token}}
+          json:
+            titulo: "Post de Prueba StepCI"
+            contenido: "Este es un post creado durante las pruebas automatizadas"
+            categoria_id: 1
+        check:
+          status: 201
+          json:
+            success: true
+            id:
+              type: string
+        captures:
+          post_id:
+            json: $.id
+
+      - name: "Listar Posts con Paginación"
+        http:
+          url: /api/v1/posts
+          method: GET
+          query:
+            page: 1
+            per_page: 5
+        check:
+          status: 200
+          json:
+            success: true
+            posts:
+              type: array
+            pagination:
+              type: object
+
+      - name: "Consultar Post por ID"
+        http:
+          url: /api/v1/post/${{captures.post_id}}
+          method: GET
+        check:
+          status: 200
+          json:
+            success: true
+            id: ${{captures.post_id}}
+
+      - name: "Actualizar Post"
+        http:
+          url: /api/v1/posts/actualizar/${{captures.post_id}}
+          method: PUT
+          headers:
+            Authorization: Bearer ${{captures.token}}
+          json:
+            titulo: "Post Actualizado"
+            contenido: "Contenido actualizado en pruebas"
+        check:
+          status: 200
+          json:
+            success: true
+
+      - name: "Eliminar Post"
+        http:
+          url: /api/v1/posts/eliminar/${{captures.post_id}}
+          method: DELETE
+          headers:
+            Authorization: Bearer ${{captures.token}}
+          json:
+            motivo: "Eliminado por pruebas automatizadas"
+        check:
+          status: 200
+          json:
+            success: true
+
+  favoritos_flow:
+    name: "Sistema de Favoritos"
+    steps:
+      - name: "Login"
+        http:
+          url: /api/v1/usuarios
+          method: POST
+          json:
+            email: ${{env.test_user_email}}
+            password: ${{env.test_user_password}}
+        check:
+          status: 200
+        captures:
+          token:
+            json: $.access_token
+          user_id:
+            json: $.user_id
+
+      - name: "Crear Post para Favoritos"
+        http:
+          url: /api/v1/posts
+          method: POST
+          headers:
+            Authorization: Bearer ${{captures.token}}
+          json:
+            titulo: "Post para Favoritos"
+            contenido: "Post que será marcado como favorito"
+            categoria_id: 1
+        check:
+          status: 201
+        captures:
+          fav_post_id:
+            json: $.id
+
+      - name: "Marcar como Favorito"
+        http:
+          url: /api/v1/favorito/crear
+          method: POST
+          headers:
+            Authorization: Bearer ${{captures.token}}
+          json:
+            id_post: ${{captures.fav_post_id}}
+        check:
+          status: 201
+          json:
+            success: true
+
+      - name: "Intentar Marcar Favorito Duplicado"
+        http:
+          url: /api/v1/favorito/crear
+          method: POST
+          headers:
+            Authorization: Bearer ${{captures.token}}
+          json:
+            id_post: ${{captures.fav_post_id}}
+        check:
+          status: 409
+          json:
+            success: false
+            message: "Este post ya está en tus favoritos"
+
+      - name: "Consultar Favoritos del Usuario"
+        http:
+          url: /api/v1/favoritos/${{captures.user_id}}
+          method: GET
+          headers:
+            Authorization: Bearer ${{captures.token}}
+          json: {}
+        check:
+          status: 200
+          json:
+            success: true
+
+      - name: "Eliminar de Favoritos"
+        http:
+          url: /api/v1/favorito/eliminar
+          method: POST
+          headers:
+            Authorization: Bearer ${{captures.token}}
+          json:
+            id_post: ${{captures.fav_post_id}}
+        check:
+          status: 201
+          json:
+            success: true
+
+  categorias_basic:
+    name: "Consulta de Categorías"
+    steps:
+      - name: "Listar Categorías"
+        http:
+          url: /api/v1/categoria
+          method: GET
+        check:
+          status: 200
+          json:
+            type: array
+
+  admin_validation:
+    name: "Validación de Admin"
+    steps:
+      - name: "Login Admin"
+        http:
+          url: /api/v1/usuarios
+          method: POST
+          json:
+            email: ${{env.admin_email}}
+            password: ${{env.admin_password}}
+        check:
+          status: 200
+        captures:
+          admin_token:
+            json: $.access_token
+
+      - name: "Validar Permisos Admin"
+        http:
+          url: /api/v1/admin/usuarios
+          method: GET
+          headers:
+            Authorization: Bearer ${{captures.admin_token}}
+        check:
+          status: 200
+          json:
+            success: true
+
+  error_handling:
+    name: "Manejo de Errores"
+    steps:
+      - name: "Credenciales Inválidas"
+        http:
+          url: /api/v1/usuarios
+          method: POST
+          json:
+            email: "usuario@inexistente.com"
+            password: "passwordincorrecto"
+        check:
+          status: 401
+          json:
+            success: false
+            message: "Credenciales inválidas"
+
+      - name: "Token Inválido"
+        http:
+          url: /api/v1/auth/me
+          method: GET
+          headers:
+            Authorization: Bearer token_invalido
+        check:
+          status: 401
+          json:
+            success: false
+
+      - name: "Usuario No Encontrado"
+        http:
+          url: /api/v1/usuarios/999999
+          method: GET
+          headers:
+            Authorization: Bearer token_valido
+        check:
+          status: 404
+          json:
+            success: false
+            message: "Not Found"
+
+      - name: "Datos Inválidos - Favorito sin id_post"
+        http:
+          url: /api/v1/favorito/crear
+          method: POST
+          headers:
+            Authorization: Bearer token_valido
+          json:
+            otro_campo: "valor"
+        check:
+          status: 400
+          json:
+            success: false
+            message: "El campo 'id_post' es obligatorio"
+
+      - name: "Validación de Esquema"
+        http:
+          url: /api/v1/posts
+          method: POST
+          headers:
+            Authorization: Bearer token_valido
+          json:
+            titulo: ""  # título vacío
+            contenido: null  # contenido nulo
+        check:
+          status: 422

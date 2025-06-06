@@ -7,6 +7,7 @@ from schemas.categoria_schema import CategoriaSchema
 from modelos.categoria_model import Categoria
 from flask_jwt_extended import jwt_required
 from schemas.Error_schemas import ErrorSchema
+from modelos.post_categoria_model import PostCategoria
 
 
 categorias_bp = Blueprint('categorias', __name__, description="Operaciones con Categorias")
@@ -17,16 +18,20 @@ categorias_bp = Blueprint('categorias', __name__, description="Operaciones con C
 class CategoriaResource(MethodView):
 
     @categorias_bp.response(HTTPStatus.OK, CategoriaSchema(many=True))
-    # @jwt_required()
+    #@jwt_required()
     def get(self):
-        """ Consultar todas la categorias"""
-        categorias = Categoria.query.all()        
+        """ Consultar todas la categorias con total de publicaciones"""
+        categorias = Categoria.query.all() 
+
+        for categoria in categorias:
+            categoria.total_posts = db.session.query(PostCategoria).filter_by(id_categoria=categoria.id_categoria).count()
+
         return categorias
 
 
     @categorias_bp.arguments(CategoriaSchema)
     @categorias_bp.response(HTTPStatus.CREATED, CategoriaSchema)    
-    #@jwt_required()
+    @jwt_required()
     def post(self, categoria_data):
         """ Registrar una nueva Categoria"""
         # verificar si existe una categoria 
@@ -46,7 +51,7 @@ class CategoriaResourceId(MethodView):
   @categorias_bp.alt_response(HTTPStatus.NOT_FOUND, schema=ErrorSchema, description="No existe un recurso con este id", example={"success": False, "message": "Not Found"})
   @categorias_bp.alt_response(HTTPStatus.UNAUTHORIZED, schema=ErrorSchema, description="No autorizado", example={"success": False, "message": "No autorizado"})
   @categorias_bp.alt_response(HTTPStatus.INTERNAL_SERVER_ERROR, schema=ErrorSchema, description="Error interno del servidor", example={"success": False, "message": "Error interno del servidor"})
-  #@jwt_required()
+  @jwt_required()
   def get(self, id_categoria):
       """ Consultar una categoria por su ID"""
       categoria = Categoria.query.filter_by(id_categoria=id_categoria).first()

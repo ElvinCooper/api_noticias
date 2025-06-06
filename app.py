@@ -52,9 +52,6 @@ def create_app(testing=False):
         return schema.__class__.__name__
 
 
-    # Inicializar API y extensiones
-    # from apispec.ext.marshmallow import MarshmallowPlugin
-    # from apispec import APISpec
     init_extensions(app)
 
     app.config.update({
@@ -62,14 +59,6 @@ def create_app(testing=False):
         'API_VERSION': 'v1',
         'OPENAPI_VERSION': '3.0.2',
     })
-
-
-    # app.config['APISPEC_SPEC'] = APISpec(
-    #     title="API Noticias",
-    #     version="1.0.0",
-    #     openapi_version="3.0.2",
-    #     plugins=[MarshmallowPlugin(schema_name_resolver=schema_name_resolver)]
-    # )
 
     
     api = Api(app)

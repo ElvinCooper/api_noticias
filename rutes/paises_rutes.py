@@ -18,7 +18,7 @@ pais_bp = Blueprint('pais', __name__, description='Operaciones con Paises')
 class PaisResource(MethodView):
 
     @pais_bp.response(HTTPStatus.OK, PaisSchema(many=True))
-    # @jwt_required()
+    @jwt_required()
     def get(self):
         """ Consultar todos los paises en el sistema"""
         pais = Pais.query.all()                    
@@ -27,7 +27,7 @@ class PaisResource(MethodView):
     
     @pais_bp.arguments(PaisSchema)
     @pais_bp.response(HTTPStatus.CREATED, PaisSchema)
-    #jwt_required()
+    @jwt_required()
     def post(self, pais_data):
         """ Registrar un nuevo Pais """
         # verfificar si ya existe un pais con esa descripcion
@@ -51,7 +51,7 @@ class PaisResourceId(MethodView):
     @pais_bp.alt_response(HTTPStatus.NOT_FOUND, schema=ErrorSchema, description="No existe un recurso con este id", example={"success": False, "message": "Not Found"})
     @pais_bp.alt_response(HTTPStatus.UNAUTHORIZED, schema=ErrorSchema, description="No autorizado", example={"success": False, "message": "No autorizado"})
     @pais_bp.alt_response(HTTPStatus.INTERNAL_SERVER_ERROR, schema=ErrorSchema, description="Error interno del servidor", example={"success": False, "message": "Error interno del servidor"})
-    # @jwt_required()
+    @jwt_required()
     def get(self, id_pais):
         """ Consultar un Pais por su ID"""
         pais = Pais.query.filter_by(id_pais=id_pais).first()

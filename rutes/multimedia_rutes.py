@@ -20,7 +20,7 @@ multimedias_schemas = MultimediaSchema(many=True)
 class MultimediaResource(MethodView):
 
     @multimedia_bp.response(HTTPStatus.OK, MultimediaSchema(many=True))
-    #@jwt_required()
+    @jwt_required()
     def get(self):    
         """ Consultar todos los elementos multimedia"""
         multimedia = Multimedia.query.all()
@@ -32,7 +32,7 @@ class MultimediaResource(MethodView):
     
     @multimedia_bp.arguments(MultimediaSchema)
     @multimedia_bp.response(201, MultimediaSchema)
-    #@jwt_required()
+    @jwt_required()
     def post(self, data):
         """ Registrar un nuevo medio """
         # Verificar si ya existe uno con el mismo nombre
@@ -56,7 +56,7 @@ class MultimediaResourceID(MethodView):
     @multimedia_bp.alt_response(HTTPStatus.NOT_FOUND, schema=ErrorSchema, description="No existe un recurso con este id", example={"success": False, "message": "Not Found"})
     @multimedia_bp.alt_response(HTTPStatus.UNAUTHORIZED, schema=ErrorSchema, description="No autorizado", example={"success": False, "message": "No autorizado"})
     @multimedia_bp.alt_response(HTTPStatus.INTERNAL_SERVER_ERROR, schema=ErrorSchema, description="Error interno del servidor", example={"success": False, "message": "Error interno del servidor"})
-    #@jwt_required()    \comentado para pruebas
+    @jwt_required()    
     def get(self, id_multimedia):
         """ Consultar un recurso por su ID """
         multimedia = Multimedia.query.filter_by(id_multimedia=id_multimedia).first()

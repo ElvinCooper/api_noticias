@@ -20,7 +20,7 @@ class ResourcePostCat(MethodView):
   @post_cat_bp.alt_response(HTTPStatus.NOT_FOUND, schema=ErrorSchema, description="No existe un recurso con este id", example={"success": False, "message": "Not Found"})
   @post_cat_bp.alt_response(HTTPStatus.UNAUTHORIZED, schema=ErrorSchema, description="No autorizado", example={"success": False, "message": "No autorizado"})
   @post_cat_bp.alt_response(HTTPStatus.INTERNAL_SERVER_ERROR, schema=ErrorSchema, description="Error interno del servidor", example={"success": False, "message": "Error interno del servidor"})
-  #@jwt_required()
+  @jwt_required()
   def get(self, id_post):
     """ Consultar una pareja Post-Categoria por su ID"""
     postcats = db.session.get(PostCategoria, id_post)

@@ -22,7 +22,7 @@ class PostResource(MethodView):
    
    @post_bp.arguments(PaginationSchema, location="query", as_kwargs=True)
    @post_bp.response(HTTPStatus.OK, PaginatedPostsSchema)
-   #@jwt_required() 
+   @jwt_required() 
    def get(self, page=1, per_page=10):
     """ Consultar todos los Posts"""
     pagination = Post.query.paginate(
@@ -31,7 +31,7 @@ class PostResource(MethodView):
        error_out=False
     )
 
-    #posts = Post.query.all()
+   
     return {
        'posts': pagination.items,
        'total': pagination.total,
@@ -45,7 +45,7 @@ class PostResource(MethodView):
 
    @post_bp.arguments(PostSchema)
    @post_bp.response(HTTPStatus.CREATED, PostSchema)
-   #jwt_required()
+   @jwt_required()
    def post(self, post_data):
       """ Crear un nuevo Post"""
 
@@ -103,7 +103,7 @@ class PostResource(MethodView):
 class PostResourceID(MethodView):
    
    @post_bp.response(HTTPStatus.OK, PostSchema)
-   #jwt_required()
+   @jwt_required()
    def get(self, id_post):
     """ Consultar un Post por su ID"""
        
