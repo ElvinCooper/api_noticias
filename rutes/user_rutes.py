@@ -12,6 +12,10 @@ from marshmallow.exceptions import ValidationError
 from flask_jwt_extended import get_jwt
 from modelos.TokenBlocklist_model import TokenBlocklist
 from flask.views import MethodView
+from flask import current_app
+import traceback
+import uuid
+from datetime import datetime, timezone
 
 
 # Importacion de Schemas para respuestas de los endpoints
@@ -20,8 +24,7 @@ from schemas.user_schema import TokenRefreshResponseSchema
 from schemas.user_schema import LogoutResponseSchema
 from schemas.user_schema import MeResponseSchema
 from schemas.user_schema import AdminMeSchema
-
-
+from schemas.user_schema import UserRegisterSchema, UserResponseSchema
 
 # Instanciar  el blueprint para las rutas
 usuario_bp  = Blueprint('usuarios', __name__, description='Operaciones con Usuarios')
@@ -42,34 +45,55 @@ class UsuarioResource(MethodView):
 
 
 
-    from schemas.user_schema import UserRegisterSchema
     @usuario_bp.arguments(UserRegisterSchema)
-    @usuario_bp.response(HTTPStatus.CREATED, UserSimpleSchema)
+    @usuario_bp.response(HTTPStatus.CREATED, UserResponseSchema)
     @usuario_bp.alt_response(HTTPStatus.BAD_REQUEST, schema=ErrorSchema, description="Ya existe un usuario con ese email", example={"success": False, "message": "Ya existe un usuario con ese email"})
     @usuario_bp.alt_response(HTTPStatus.INTERNAL_SERVER_ERROR, schema=ErrorSchema, description="Error interno del servidor", example={"success": False, "message": "Error interno del servidor"})
     def post(self, data_usuario):
         """ Registrar un nuevo usuario """
-        if Usuario.query.filter_by(email=data_usuario['email']).first():
-            abort(HTTPStatus.BAD_REQUEST, message="Ya existe un usuario con ese email.")
+        try:
+            current_app.logger.info(f"Datos recibidos: {data_usuario}")
+            if Usuario.query.filter_by(email=data_usuario['email']).first():
+               return {"success": False, "message": "Ya existe un usuario con ese email."}, HTTPStatus.BAD_REQUEST
+            
+            
+            # if Usuario.query.filter_by(email=data_usuario['email']).first():
+            # abort(HTTPStatus.BAD_REQUEST, message="Ya existe un usuario con ese email.")
 
-        # Asignar rol por defecto 
-        rol_por_defecto = Rol.query.filter_by(descripcion="usuario").first()
-        if not rol_por_defecto:
-            abort(HTTPStatus.INTERNAL_SERVER_ERROR, message="No se encontro el predeterminado.")
+            # Asignar rol por defecto 
+            rol_por_defecto = Rol.query.filter_by(descripcion="usuario").first()
+            if not rol_por_defecto:
+                rol_por_defecto = Rol(
+                id_rol=str(uuid.uuid4()),
+                descripcion="usuario"
+            )
+            db.session.add(rol_por_defecto)
+            db.session.commit()
+            current_app.logger.info("Rol 'usuario' creado automáticamente.")#abort(HTTPStatus.INTERNAL_SERVER_ERROR, message="No se encontro el predeterminado.")
 
-        
-        # Crear el nuevo usuario
-        nuevo_usuario = Usuario(nombre = data_usuario['nombre'],
-                                email = data_usuario['email'],
-                                password=generate_password_hash(data_usuario['password']),
-                                id_rol=rol_por_defecto.id_rol
+            
+            # Crear el nuevo usuario
+            nuevo_usuario = Usuario(
+                                    id_usuario=str(uuid.uuid4()),
+                                    nombre=data_usuario['nombre'],
+                                    email=data_usuario['email'],
+                                    password=generate_password_hash(data_usuario['password']),
+                                    telefono=data_usuario['telefono'],
+                                    id_rol=rol_por_defecto.id_rol,
+                                    fecha_registro=datetime.now(timezone.utc)
                                 )
 
-        # Guardar el nuevo usuario con los datos + rol asignado
-        db.session.add(nuevo_usuario)
-        db.session.commit()
-        
-        return nuevo_usuario  
+            # Guardar el nuevo usuario con los datos + rol asignado
+            db.session.add(nuevo_usuario)
+            db.session.commit()
+            
+            schema  = UserResponseSchema()
+            
+            return schema.dump(nuevo_usuario), HTTPStatus.CREATED
+        except Exception as e:
+            current_app.logger.error(f"Error al registrar usuario: {str(e)}\n{traceback.format_exc()}")
+            db.session.rollback()  # Asegurar que la sesión se revierta
+            abort(HTTPStatus.INTERNAL_SERVER_ERROR, message=f"Error interno del servidor: {str(e)}")   
     
 
     @usuario_bp.arguments(UserUpdateSchema)
@@ -111,9 +135,8 @@ class UsuarioResource(MethodView):
             abort (HTTPStatus.INTERNAL_SERVER_ERROR, message="Error al actualizar el usuario")
 
 
-
 # -------------------------  Endpoint para hacer Login ------------------------------------#
-@usuario_bp.route('/usuarios')
+@usuario_bp.route('/usuarios/login')
 class LoginResource(MethodView):
 
     @usuario_bp.arguments(LoginSchema)
@@ -122,31 +145,35 @@ class LoginResource(MethodView):
     @usuario_bp.alt_response(HTTPStatus.INTERNAL_SERVER_ERROR, schema=ErrorSchema, description="Error al generar token", example={"success": False, "message": "Error interno del servidor"})   
     def post(self, data_login):
         """ Login de usuarios """
-        # crear instancia del schema
-        login_schema = LoginSchema()
-        datos_login = login_schema.load(data_login)
-
-        # Buscar usuario por email
-        usuario = Usuario.query.filter_by(email=data_login['email']).first()
-        if not usuario:
-            abort(HTTPStatus.UNAUTHORIZED, message="Credenciales Invalidas")
-
         try:
+
+            # Buscar usuario por email
+            usuario = Usuario.query.filter_by(email=data_login['email']).first()
+            if not usuario:
+                abort(HTTPStatus.UNAUTHORIZED, message="Credenciales Invalidas")
             
             # Generar token de autenticacion
             additional_claims = {"rol": usuario.rol.descripcion}
-            acces_token   = create_access_token(identity=usuario.id_usuario, additional_claims=additional_claims)
+            access_token   = create_access_token(identity=usuario.id_usuario, additional_claims=additional_claims)
             refresh_token = create_refresh_token(identity=usuario.id_usuario)
 
-            return { 
-                "acces_token": acces_token,
+            response = {
+                "access_token": access_token,
                 "refresh_token": refresh_token,
-                "usuario": usuario,
+                "usuario": {
+                    "id_usuario": usuario.id_usuario,
+                    "nombre": usuario.nombre,
+                    "email": usuario.email,
+                    "rol": {"descripcion": usuario.rol.descripcion}
+                },
                 "message": "Login exitoso"
             }
-        except Exception as e:
-            abort(HTTPStatus.INTERNAL_SERVER_ERROR, message="Error al generar token")            
+            schema = LoginResponseSchema()
+            return schema.dump(response), HTTPStatus.OK
 
+        except Exception as e:
+            current_app.logger.error(f"Error en login: {str(e)}")
+            return {"success": False, "message": f"Error interno: {str(e)}"}, HTTPStatus.INTERNAL_SERVER_ERROR
 
 #------------------ Endpoint para renovar los tokens -------------------#
     

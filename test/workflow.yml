@@ -1,0 +1,1098 @@
+version: "1.0"
+name: API Noticias
+config:
+  http: {}
+tests:
+  usuarios:
+    name: Operaciones con Usuarios
+    steps:
+      - name: Login de usuarios
+        http:
+          url: http://127.0.0.1:5000/api/v1/usuarios
+          method: POST
+          headers:
+            Content-Type: application/json
+            accept: application/json
+          json:
+            email: ${{env.EMAIL_USER}}
+            password: ${{env.EMAIL_PASS}}
+          check:
+            status: 200
+          captures:
+            access_token:
+              jsonpath: $.access_token
+      - name: Consultar todos los usuarios
+        http:
+          url: http://127.0.0.1:5000/api/v1/usuarios
+          method: GET
+          headers:
+            Authorization: Bearer ${{captures.access_token}}
+          check:
+            status: 200
+  post:
+    name: Operaciones con Post
+    steps:
+      - name: Consultar todos los Posts
+        http:
+          url: http://127.0.0.1:5000/api/v1/posts
+          method: GET
+          params:
+            page: 1
+            per_page: 10
+          check:
+            status: 200
+            schema:
+              $ref: "#/components/schemas/PaginatedPosts"
+      - name: Crear un nuevo Post
+        http:
+          url: api/v1/posts
+          method: POST
+          headers:
+            Content-Type: application/json
+            accept: application/json
+          json:
+            id_post: labore officia nisi nulla
+            titulo: elit
+            contenido: occaecat
+            id_usuario: aliqua consectetur Excepteur esse eu
+            id_pais: et
+            fecha_publicacion: "1906-10-04T02:26:57.0Z"
+            visible: true
+            autor:
+              id_usuario: exercitation ipsum enim
+              nombre: reprehenderit veniam Duis deserunt
+              email: I6ykVr7@wDaHES.glu
+              password: "aute ex "
+              id_rol: veniam
+              fecha_registro: "1943-10-26"
+              rol:
+                descripcion: dolore minim sed
+              post:
+                - id_post: voluptate in mollit
+                  titulo: non nulla dolor est Lorem
+                  contenido: sed labore
+                  id_usuario: Excepteur ea esse sint Lorem
+                  id_pais: ut aliqua reprehenderit aliquip mollit
+                  fecha_publicacion: "1942-11-15T20:12:50.0Z"
+                  visible: false
+                  autor:
+                    readOnly: true
+                  pais:
+                    readOnly: true
+                  multimedia:
+                    - url_multimedia_alt: aliquip sed veniam
+                      tipo_archivo: labore velit nisi cu
+                    - id_multimedia: ex dolore id in
+                      nombre_archivo: dolore Ut fugiat
+                      url_multimedia_alt: non
+                      tipo_archivo: officia
+                    - id_multimedia: aute
+                      nombre_archivo: veniamUtculpa adipisicing incididunt
+                      url_multimedia_alt: commodo
+                      tipo_archivo: Excepteur
+                  status: true
+                  categoria_ids:
+                    - sunt do nostrud
+                    - incididunt laboris
+                    - pariatur
+                    - esse consequat tempor qui anim
+                    - fugiat culpa cillum in
+                  categorias:
+                    - id_categoria: labore sunt in irure
+                      descripcion: proident
+                      eslogan: occaecat eu
+                      id_multimedia: aliqua irure voluptate ullamco nulla
+                      total_publicaciones: 42027585
+                    - id_categoria: anim deserunt do cillum elit
+                      descripcion: adipisicing commodo
+                      eslogan: qui aliqua cillum mollit
+                      id_multimedia: commodo in velit id
+                      total_publicaciones: -5513816
+                    - descripcion: exercitation anim occaecat ut dolor
+                    - id_categoria: esse deserunt dolor occaecat
+                      descripcion: do officia eiusmod minim adipisicing
+                    - id_categoria: minim aute nisi
+                      descripcion: qui reprehenderi
+                      eslogan: dolor consequat ut
+                      id_multimedia: cupidatat est dolore sunt reprehenderit
+                      total_publicaciones: -81772552
+                - id_post: amet labore
+                  titulo: dolor proident qui id velit
+                  contenido: nisi do
+                  id_usuario: in nisi nostrud do
+                  id_pais: dolore reprehenderit officia consequat
+                  fecha_publicacion: "1893-04-20T06:56:48.0Z"
+                  visible: true
+                  autor:
+                    readOnly: true
+                  pais:
+                    readOnly: true
+                  multimedia:
+                    - id_multimedia: laborum eu
+                      nombre_archivo: veniamtempor
+                      url_multimedia_alt: velit sit eu
+                      tipo_archivo: "Duis amet culpa "
+                    - id_multimedia: reprehenderit aliquip ullamco id
+                      nombre_archivo: reprehenderit fugiat elit consectet
+                      url_multimedia_alt: do aute
+                      tipo_archivo: aute
+                    - url_multimedia_alt: reprehenderit elit est
+                      tipo_archivo: dolor Ut occaecat
+                    - id_multimedia: consequat pariatur Ut
+                      nombre_archivo: velitLorem esse occaecat
+                      url_multimedia_alt: ut sit laborum magna
+                      tipo_archivo: e
+                  status: false
+                  categorias:
+                    - id_categoria: sunt eu Ut dolor cillum
+                      descripcion: in qui
+                      eslogan: laboris Duis adipisicing
+                      id_multimedia: ut
+                      total_publicaciones: 12139941
+                    - descripcion: in veniam
+                      total_publicaciones: 62189193
+                    - id_categoria: reprehenderit
+                      descripcion: est Excepteur dolor ullamco ut
+                      eslogan: veniam minim ut
+                      id_multimedia: do
+                      total_publicaciones: 84690564
+              favoritos:
+                - id_usuario: veniam ullamco velit eu nostrud
+                  id_post: officia
+                  post:
+                    contenido: culpa fugiat cillum non
+                    status: false
+                - id_usuario: et sunt
+                  id_post: sit
+                  post:
+                    dolore_30: dolor
+                    aliqua8ac: false
+                    titulo: quis qui officia voluptate aute
+                    contenido: tempor
+                    fecha_publicacion: "1896-10-30T19:03:32.0Z"
+                    status: false
+                - id_usuario: minim
+                  id_post: ut id culpa Duis aliquip
+                - id_usuario: magna occaecat irure
+                  id_post: velit tempor cupidatat ipsum
+                  post:
+                    quisf7: -9933117.23636809
+                    sed_c: -17989602.60235329
+                    non_7b4: -89094442.74541664
+                    in_d55: 88306472
+                    id_post: voluptate
+                    titulo: in cillum
+                    contenido: cupidatat
+                    fecha_publicacion: "1907-05-05T08:59:46.0Z"
+                    visible: true
+                    status: true
+                - id_usuario: deserunt sed proident nostrud anim
+                  id_post: cillum in officia do
+                  post:
+                    id_post: culpa ipsum do irure
+                    titulo: enim aliquip elit
+                    fecha_publicacion: "1951-12-18T17:50:57.0Z"
+                    visible: false
+              telefono: "n"
+            pais:
+              fugiate3: false
+              dolor_97: 17441075
+              id_pais: anim in qui exercitation cupidatat
+              nombre_pais: proident
+              abrebiatura_pais: consequat in dolore sunt
+            multimedia:
+              - id_multimedia: nisi et sint tempor dolore
+                nombre_archivo: incididunt labore exercitation sit officia
+                url_multimedia_alt: non labore
+                tipo_archivo: do ex
+              - id_multimedia: veniam sint magna
+                tipo_archivo: Ut oc
+              - id_multimedia: dolor magna est dolore
+                nombre_archivo: eiusmod est aliquip commodo
+                url_multimedia_alt: dolore occaecat anim eiusmod
+                tipo_archivo: qui labo
+              - tipo_archivo: "culpa dolore cillum "
+              - id_multimedia: nostrud velit sunt
+                nombre_archivo: euinea magna et labore
+                url_multimedia_alt: anim eu
+                tipo_archivo: "Excepteur "
+            status: true
+            categoria_ids:
+              - deserunt minim eu dolore id
+            categorias:
+              - id_categoria: deserunt enim ullamco in Ut
+                descripcion: incididunt aute labore id
+                eslogan: id
+                id_multimedia: eu
+                total_publicaciones: 7812369
+              - id_categoria: laborum voluptate
+                descripcion: nulla amet do magna
+                eslogan: exercitation occaecat non
+                id_multimedia: culpa labore dolor non
+                total_publicaciones: 27604889
+              - descripcion: incididunt laboris id anim
+                id_multimedia: amet
+              - descripcion: consequat
+              - id_categoria: Ut occaecat
+                descripcion: "amet adipisicing "
+                eslogan: qui sunt
+                id_multimedia: aliqua sunt dolore ad labore
+                total_publicaciones: -10975379
+          check:
+            status: 201
+            schema:
+              $ref: "#/components/schemas/Post"
+      - name: Consultar un Post por su ID
+        http:
+          url: api/v1/post/{id_post}
+          method: GET
+          check:
+            status: 200
+            schema:
+              $ref: "#/components/schemas/Post"
+      - name: Actualizar un Post existente
+        http:
+          url: api/v1/posts/actualizar/{id_post}
+          method: PUT
+          headers:
+            Content-Type: application/json
+            accept: application/json
+          json:
+            contenido: reprehenderit Excepteur aliqua
+            id_post: mollit ullamco esse ut magna
+          check:
+            status: 200
+            schema:
+              $ref: "#/components/schemas/Post"
+      - name: Eliminar un Post existente
+        http:
+          url: api/v1/posts/eliminar/{id_post}
+          method: DELETE
+          headers:
+            Content-Type: application/json
+            accept: application/json
+          json:
+            anim_eb4: in consequat
+            add9: 15455427.024198532
+            incididunt_ab0: -52233274
+            officia6: nisi
+            titulo: Duis dolor Lorem
+            id_pais: nostrud tempor occaecat fugiat
+            id_post: ut nostrud
+            fecha_publicacion: "1946-10-24T03:21:15.0Z"
+            status: true
+          check:
+            status: 200
+            schema:
+              $ref: "#/components/schemas/Post"
+  favoritos:
+    name: Operaciones con Favoritos
+    steps:
+      - name: Consultar para crear un nuevo favorito
+        http:
+          url: api/v1/favoritos
+          method: GET
+          headers:
+            Content-Type: application/json
+            accept: application/json
+          json:
+            id_usuario: nisi
+            id_post: ut deserunt ad qui
+            usuario:
+              id_usuario: anim mollit elit do
+              nombre: sit aute non amet
+              email: Dbpa8vab-n9JsYm@ngCycozhRgKi.qhyc
+            post:
+              laborum_a59: 19596433
+              Utbf5: 45914205.81889388
+              ipsum_10: true
+              ina: dolor
+              qui_20: false
+              cupidatatb1: 86497419.90027052
+              esse_f: 43551402.797732055
+              dolor_28: false
+              voluptate_62: id elit esse in sit
+          check:
+            status: 201
+            schema:
+              $ref: "#/components/schemas/Favorito1"
+      - name: Consultar un Post favorito por su ID
+        http:
+          url: api/v1/favoritos/{id_usuario}
+          method: GET
+          headers:
+            Content-Type: application/json
+            accept: application/json
+          json:
+            id_usuario: in ut elit eu
+            id_post: aliqua nisi anim cillum qui
+            usuario:
+              id_usuario: ex sed ipsum aliqua sit
+              nombre: in ut officia
+              email: fQtyF5iElJwV-cq@hqHcuCSHxxdILjnIrsRZyAxywrSDSI.kqh
+            post:
+              titulo: amet culpa dolor ipsum velit
+              contenido: magna ea laboris deserunt
+              visible: true
+              status: true
+          check:
+            status: 200
+            schema:
+              $ref: "#/components/schemas/Favorito1"
+      - name: Marcar un post como favorito
+        http:
+          url: api/v1/favorito/crear
+          method: POST
+          headers:
+            Content-Type: application/json
+            accept: application/json
+          json:
+            id_post: Excepteur et quis
+          check:
+            status: 201
+            schema:
+              $ref: "#/components/schemas/FavoritoResponse"
+      - name: Eliminar un post como favorito
+        http:
+          url: api/v1/favorito/eliminar
+          method: POST
+          headers:
+            Content-Type: application/json
+            accept: application/json
+          json:
+            id_post: sint in
+          check:
+            status: 201
+            schema:
+              $ref: "#/components/schemas/FavoritoResponse"
+  categorias:
+    name: Operaciones con Categorias
+    steps:
+      - name: Consultar todas la categorias con total de publicaciones
+        http:
+          url: api/v1/categoria
+          method: GET
+          check:
+            status: 200
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/Categoria"
+      - name: Registrar una nueva Categoria
+        http:
+          url: api/v1/categoria
+          method: POST
+          headers:
+            Content-Type: application/json
+            accept: application/json
+          json:
+            descripcion: quis
+            total_publicaciones: 19658522
+          check:
+            status: 201
+            schema:
+              $ref: "#/components/schemas/Categoria"
+      - name: Consultar una categoria por su ID
+        http:
+          url: api/v1/categoria/{id_categoria}
+          method: GET
+          check:
+            status: 200
+            schema:
+              $ref: "#/components/schemas/Categoria"
+  pais:
+    name: Operaciones con Paises
+    steps:
+      - name: Consultar todos los paises en el sistema
+        http:
+          url: api/v1/paises
+          method: GET
+          check:
+            status: 200
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/Pais"
+      - name: Registrar un nuevo Pais
+        http:
+          url: api/v1/paises
+          method: POST
+          headers:
+            Content-Type: application/json
+            accept: application/json
+          json:
+            nombre_pais: ex dolore laborum fugiat ea
+            abrebiatura_pais: rep
+          check:
+            status: 201
+            schema:
+              $ref: "#/components/schemas/Pais"
+      - name: Consultar un Pais por su ID
+        http:
+          url: api/v1/paises/{id_pais}
+          method: GET
+          check:
+            status: 200
+            schema:
+              $ref: "#/components/schemas/Pais"
+  postCategoria:
+    name: Operaciones con PostCategoria
+    steps:
+      - name: Consultar una pareja Post-Categoria por su ID
+        http:
+          url: api/v1/postcat/{id_post}
+          method: GET
+          check:
+            status: 200
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/PostCategoria"
+  multimedia:
+    name: Operaciones con Multimedia
+    steps:
+      - name: Consultar todos los elementos multimedia
+        http:
+          url: api/v1/multimedia
+          method: GET
+          check:
+            status: 200
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/Multimedia"
+      - name: Consultar un recurso por su ID
+        http:
+          url: api/v1/multimedia/{id_multimedia}
+          method: GET
+          headers:
+            Content-Type: application/json
+            accept: application/json
+          json:
+            id_multimedia: in proident
+            url_multimedia_alt: irure incididunt commodo
+            tipo_archivo: molli
+          check:
+            status: 200
+            schema:
+              $ref: "#/components/schemas/Multimedia"
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: Error code
+        status:
+          type: string
+          description: Error name
+        message:
+          type: string
+          description: Error message
+        errors:
+          type: object
+          description: Errors
+          additionalProperties: {}
+    PaginationMetadata:
+      type: object
+      properties:
+        total:
+          type: integer
+        total_pages:
+          type: integer
+        first_page:
+          type: integer
+        last_page:
+          type: integer
+        page:
+          type: integer
+        previous_page:
+          type: integer
+        next_page:
+          type: integer
+    Error1:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: false
+        message:
+          type: string
+      required:
+        - message
+    UserSimple:
+      type: object
+      properties:
+        id_usuario:
+          type: string
+        nombre:
+          type: string
+        email:
+          type: string
+          format: email
+        telefono:
+          type: string
+          maxLength: 20
+          nullable: true
+        password:
+          type: string
+        fecha_registro:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+        - password
+    UserRegister:
+      type: object
+      properties:
+        nombre:
+          type: string
+          minLength: 1
+          maxLength: 60
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          writeOnly: true
+          minLength: 8
+          maxLength: 25
+        id_usuario:
+          type: string
+          maxLength: 36
+        telefono:
+          type: string
+          maxLength: 20
+          nullable: true
+        fecha_registro:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+        - email
+        - nombre
+        - password
+    UserUpdate:
+      type: object
+      properties:
+        nombre:
+          type: string
+          minLength: 1
+          maxLength: 60
+        email:
+          type: string
+          format: email
+        telefono:
+          type: string
+          maxLength: 20
+          nullable: true
+        password:
+          type: string
+          writeOnly: true
+          minLength: 8
+          maxLength: 25
+    Login:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 1
+        id_usuario:
+          type: string
+          maxLength: 36
+        nombre:
+          type: string
+          maxLength: 100
+        telefono:
+          type: string
+          maxLength: 20
+          nullable: true
+        fecha_registro:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+        - email
+        - nombre
+        - password
+    Rol:
+      type: object
+      properties:
+        descripcion:
+          type: string
+          maxLength: 50
+      required:
+        - descripcion
+    User:
+      type: object
+      properties:
+        id_usuario:
+          type: string
+          readOnly: true
+        nombre:
+          type: string
+          minLength: 1
+          maxLength: 60
+        email:
+          type: string
+          format: email
+        rol:
+          readOnly: true
+          allOf:
+            - $ref: "#/components/schemas/Rol"
+      required:
+        - email
+        - nombre
+    LoginResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        usuario:
+          $ref: "#/components/schemas/User"
+        message:
+          type: string
+        id_usuario:
+          type: string
+          maxLength: 36
+        nombre:
+          type: string
+          maxLength: 100
+        email:
+          type: string
+          maxLength: 50
+        telefono:
+          type: string
+          maxLength: 20
+          nullable: true
+        password:
+          type: string
+        fecha_registro:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+        - email
+        - nombre
+        - password
+    TokenRefreshResponse:
+      type: object
+      properties:
+        acces_token:
+          type: string
+        refresh_token:
+          type: string
+        id_usuario:
+          type: string
+          maxLength: 36
+        nombre:
+          type: string
+          maxLength: 100
+        email:
+          type: string
+          maxLength: 50
+        telefono:
+          type: string
+          maxLength: 20
+          nullable: true
+        password:
+          type: string
+        fecha_registro:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+        - acces_token
+        - email
+        - nombre
+        - password
+        - refresh_token
+    LogoutResponse:
+      type: object
+      properties:
+        mensaje:
+          type: string
+        id_usuario:
+          type: string
+          maxLength: 36
+        nombre:
+          type: string
+          maxLength: 100
+        email:
+          type: string
+          maxLength: 50
+        telefono:
+          type: string
+          maxLength: 20
+          nullable: true
+        password:
+          type: string
+        fecha_registro:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+        - email
+        - nombre
+        - password
+    MeResponse:
+      type: object
+      properties:
+        id_usuario:
+          type: string
+        nombre:
+          type: string
+        email:
+          type: string
+          format: email
+        rol:
+          $ref: "#/components/schemas/Rol"
+        telefono:
+          type: string
+          maxLength: 20
+          nullable: true
+        password:
+          type: string
+        fecha_registro:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+        - password
+    AdminMe:
+      type: object
+      properties:
+        id_usuario:
+          type: string
+        nombre:
+          type: string
+        email:
+          type: string
+          format: email
+        rol:
+          $ref: "#/components/schemas/Rol"
+        fecha_registro:
+          type: string
+          format: date
+        telefono:
+          type: string
+          maxLength: 20
+          nullable: true
+        password:
+          type: string
+      required:
+        - password
+    PostSimple:
+      type: object
+      properties:
+        id_post:
+          type: string
+          readOnly: true
+        titulo:
+          type: string
+        contenido:
+          type: string
+        fecha_publicacion:
+          type: string
+          format: date-time
+        visible:
+          type: boolean
+        status:
+          type: boolean
+          nullable: true
+    Favorito:
+      type: object
+      properties:
+        id_usuario:
+          type: string
+          writeOnly: true
+        id_post:
+          type: string
+          writeOnly: true
+        post:
+          readOnly: true
+          allOf:
+            - $ref: "#/components/schemas/PostSimple"
+      required:
+        - id_post
+        - id_usuario
+    User1:
+      type: object
+      properties:
+        id_usuario:
+          type: string
+          readOnly: true
+        nombre:
+          type: string
+          minLength: 1
+          maxLength: 60
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          writeOnly: true
+          minLength: 8
+          maxLength: 25
+        id_rol:
+          type: string
+          readOnly: true
+        fecha_registro:
+          type: string
+          format: date
+          readOnly: true
+        rol:
+          readOnly: true
+          allOf:
+            - $ref: "#/components/schemas/Rol"
+        post:
+          readOnly: true
+          type: array
+          items:
+            $ref: "#/components/schemas/Post"
+        favoritos:
+          type: array
+          items:
+            $ref: "#/components/schemas/Favorito"
+        telefono:
+          type: string
+          maxLength: 20
+          nullable: true
+      required:
+        - email
+        - nombre
+        - password
+    PaisSimple:
+      type: object
+      properties:
+        id_pais:
+          type: string
+        nombre_pais:
+          type: string
+        abrebiatura_pais:
+          type: string
+    Multimedia:
+      type: object
+      properties:
+        id_multimedia:
+          type: string
+          readOnly: true
+        nombre_archivo:
+          type: string
+          minLength: 10
+          maxLength: 60
+          nullable: true
+        url_multimedia_alt:
+          type: string
+          nullable: true
+        tipo_archivo:
+          type: string
+          maxLength: 20
+      required:
+        - tipo_archivo
+    Categoria:
+      type: object
+      properties:
+        id_categoria:
+          type: string
+          readOnly: true
+        descripcion:
+          type: string
+          maxLength: 80
+        eslogan:
+          type: string
+          nullable: true
+        id_multimedia:
+          type: string
+          writeOnly: true
+          nullable: true
+        total_publicaciones:
+          type: integer
+          readOnly: true
+      required:
+        - descripcion
+    Post:
+      type: object
+      properties:
+        id_post:
+          type: string
+          readOnly: true
+        titulo:
+          type: string
+          maxLength: 100
+        contenido:
+          type: string
+        id_usuario:
+          type: string
+          writeOnly: true
+        id_pais:
+          type: string
+          writeOnly: true
+        fecha_publicacion:
+          type: string
+          format: date-time
+          readOnly: true
+        visible:
+          type: boolean
+          default: true
+        autor:
+          readOnly: true
+          allOf:
+            - $ref: "#/components/schemas/User1"
+        pais:
+          readOnly: true
+          allOf:
+            - $ref: "#/components/schemas/PaisSimple"
+        multimedia:
+          readOnly: true
+          type: array
+          items:
+            $ref: "#/components/schemas/Multimedia"
+        status:
+          type: boolean
+          default: true
+        categoria_ids:
+          type: array
+          default: []
+          writeOnly: true
+          items:
+            type: string
+        categorias:
+          readOnly: true
+          type: array
+          items:
+            $ref: "#/components/schemas/Categoria"
+      required:
+        - contenido
+        - id_pais
+        - id_usuario
+        - titulo
+    PaginatedPosts:
+      type: object
+      properties:
+        posts:
+          type: array
+          items:
+            $ref: "#/components/schemas/Post"
+        total:
+          type: integer
+        pages:
+          type: integer
+        current_page:
+          type: integer
+        per_page:
+          type: integer
+        has_next:
+          type: boolean
+        has_prev:
+          type: boolean
+    PostUpdate:
+      type: object
+      properties:
+        titulo:
+          type: string
+        contenido:
+          type: string
+        id_pais:
+          type: string
+        id_post:
+          type: string
+        fecha_publicacion:
+          type: string
+          format: date-time
+          nullable: true
+        visible:
+          type: boolean
+          nullable: true
+        status:
+          type: boolean
+          nullable: true
+    User2:
+      type: object
+      properties:
+        id_usuario:
+          type: string
+          readOnly: true
+        nombre:
+          type: string
+          minLength: 1
+          maxLength: 60
+        email:
+          type: string
+          format: email
+      required:
+        - email
+        - nombre
+    Favorito1:
+      type: object
+      properties:
+        id_usuario:
+          type: string
+          writeOnly: true
+        id_post:
+          type: string
+          writeOnly: true
+        usuario:
+          readOnly: true
+          allOf:
+            - $ref: "#/components/schemas/User2"
+        post:
+          readOnly: true
+          allOf:
+            - $ref: "#/components/schemas/PostSimple"
+      required:
+        - id_post
+        - id_usuario
+    FavoritoInput:
+      type: object
+      properties:
+        id_post:
+          type: string
+      required:
+        - id_post
+    FavoritoResponse:
+      type: object
+      properties:
+        mensaje:
+          type: string
+        id_usuario:
+          type: string
+        id_post:
+          type: string
+    Pais:
+      type: object
+      properties:
+        id_pais:
+          type: string
+          readOnly: true
+        nombre_pais:
+          type: string
+          maxLength: 50
+        abrebiatura_pais:
+          type: string
+          maxLength: 3
+        id_multimedia:
+          type: string
+          writeOnly: true
+          nullable: true
+      required:
+        - abrebiatura_pais
+        - nombre_pais
+    PostCategoria:
+      type: object
+      properties:
+        id_post:
+          type: string
+          writeOnly: true
+        id_categoria:
+          type: string
+          writeOnly: true
+      required:
+        - id_categoria
+        - id_post

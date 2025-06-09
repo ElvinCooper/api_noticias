@@ -1,8 +1,9 @@
-from marshmallow import fields, validate
+from marshmallow import fields, validate, Schema, pre_dump
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, auto_field
 from modelos.user_model import Usuario
 from schemas.rol_schema import RolSchema
 from extensions import db
+from datetime import datetime
 
 
 class UserSchema(SQLAlchemyAutoSchema):
@@ -25,12 +26,37 @@ class UserSchema(SQLAlchemyAutoSchema):
 
 
 
+class UserResponseSchema(Schema):
+    id_usuario = fields.String()
+    nombre = fields.String()
+    email = fields.Email()
+    telefono = fields.String(allow_none=True)
+    fecha_registro = fields.DateTime(allow_none=True)
+
+    @pre_dump
+    def convert_fecha_registro(self, data, **kwargs):
+        if isinstance(data, dict):
+            fecha = data.get('fecha_registro')
+            if isinstance(fecha, str):
+                try:
+                    data['fecha_registro'] = datetime.fromisoformat(fecha)
+                except ValueError:
+                    data['fecha_registro'] = None
+        else:
+            if isinstance(data.fecha_registro, str):
+                try:
+                    data.fecha_registro = datetime.fromisoformat(data.fecha_registro)
+                except ValueError:
+                    data.fecha_registro = None
+        return data
+
+
 #--------------------------------------- Schema base para salida -------------------------------------------------------#
 class BaseOutputSchema(SQLAlchemyAutoSchema):
     class Meta:
         load_instance = True
         sqla_session = None
-        exclude = ("password", "acces_token", "refresh_token") 
+        exclude = ("password", "access_token", "refresh_token") 
         schema_name="BaseOutputSchema"
 
 
@@ -51,15 +77,12 @@ class UserSimpleSchema(BaseOutputSchema):
 
 
 # ------------------------  Schema para registrar un usuario ---------------------------------#    
-class UserRegisterSchema(SQLAlchemyAutoSchema):
-    class Meta:
-        model = Usuario
-        load_instance = True
-        schema_name = "UserRegisterSchema"
+class UserRegisterSchema(Schema):
 
     nombre = fields.String(required=True, validate=validate.Length(min=1, max=60))
     email = fields.Email(required=True)
     password = fields.String(required=True, validate=validate.Length(min=8, max=25), load_only=True)    
+    telefono = fields.String(validate=validate.Length(min=10, max=12))
 
 
 
@@ -85,21 +108,14 @@ class UserUpdateSchema(SQLAlchemyAutoSchema):
 
 
 # ------------------------  Schema para recibir datos de Login ---------------------------------#    
-class LoginSchema(SQLAlchemyAutoSchema):
-    class Meta:
-        model = Usuario
-        load_instance = True
-        include_relationships = False  # No incluir relaciones en actualización
-        sqla_session = db.session
-        partial = True  
-        schema_name = "UserLoginSchema"
-
+class LoginSchema(Schema):
     email = fields.Email(required=True)
     password = fields.String(required=True, validate=validate.Length(min=1))
+    schema_name = "UserLoginSchema"
 
 
 # ------------------------  Schema para para respuesta de Login exitoso ---------------------------------#    
-class LoginResponseSchema(SQLAlchemyAutoSchema):
+class LoginResponseSchema(Schema):
     class Meta:
         model = Usuario
         load_instance = True

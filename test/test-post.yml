@@ -1,0 +1,20 @@
+version: "1.0"
+name: Test Login Individual
+config:
+  http: {}
+tests:
+  login_test:
+    name: Solo Login
+    steps:
+      - name: Login de usuarios
+        http:
+          url: http://127.0.0.1:5000/api/v1/usuarios
+          method: POST
+          headers:
+            Content-Type: application/json
+            accept: application/json
+          json:
+            email: ${{env.EMAIL_USER}}
+            password: ${{env.EMAIL_PASS}}
+          check:
+            status: 200

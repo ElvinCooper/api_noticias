@@ -10,7 +10,7 @@ class Usuario(db.Model):
     nombre = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(50), unique=True, nullable=False)
     telefono = db.Column(db.String(20))
-    password = db.Column(db.String, nullable=False)
+    password = db.Column(db.String(255), nullable=False)
     id_rol = db.Column(db.String(36), db.ForeignKey('roles.id_rol'), nullable=False)
     fecha_registro = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     rol = db.relationship('Rol', back_populates='usuarios', lazy=True)
