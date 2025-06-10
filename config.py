@@ -41,7 +41,7 @@ class ProductionConfig(BaseConfig):
 
 class TestingConfig(BaseConfig):
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = "postgresql://infonovax_user:5CFyBwyKghRKWoIqhj19hZQAHIp1sRm0@dpg-d0qe6kre5dus739ge4g0-a.ohio-postgres.render.com/infonovax"
+    SQLALCHEMY_DATABASE_URI = os.getenv("DEV_DATABASE_URI")
     JWT_SECRET_KEY = "test-secret"
     SECRET_KEY = "test"
     FRONTEND_URL = "http://localhost:3000"
