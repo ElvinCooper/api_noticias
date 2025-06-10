@@ -23,21 +23,22 @@ class BaseConfig:
 class DevelopmentConfig(BaseConfig):
     DEBUG = True
     
-    # Configuración para PostgreSQL local
-    SQLALCHEMY_DATABASE_URI = os.getenv("DEV_DATABASE_URI")
-    if not SQLALCHEMY_DATABASE_URI:
-        raise ValueError("DEV_DATABASE_URI debe estar definido en desarrollo.")
+    def __init__(self):
+        self.SQLALCHEMY_DATABASE_URI = os.getenv("DEV_DATABASE_URI")
+        if not self.SQLALCHEMY_DATABASE_URI:
+            raise ValueError("DEV_DATABASE_URI debe estar definido en desarrollo.")
     
 class ProductionConfig(BaseConfig):
     DEBUG = False
 
-    SQLALCHEMY_DATABASE_URI = os.getenv("SQLALCHEMY_DATABASE_URI")
-    if not SQLALCHEMY_DATABASE_URI:
-        raise ValueError("SQLALCHEMY_DATABASE_URI debe estar definido en producción.")
-    
-    FRONTEND_URL = os.getenv("FRONTEND_URL")
-    if not FRONTEND_URL:
-        raise ValueError("FRONTEND_URL debe estar definido en producción.")
+    def __init__(self):
+        self.SQLALCHEMY_DATABASE_URI = os.getenv("SQLALCHEMY_DATABASE_URI")
+        if not self.SQLALCHEMY_DATABASE_URI:
+            raise ValueError("SQLALCHEMY_DATABASE_URI debe estar definido en producción.")
+        
+        frontend_url = os.getenv("FRONTEND_URL")
+        if frontend_url:
+            self.FRONTEND_URL = frontend_url
 
 
 class TestingConfig(BaseConfig):
