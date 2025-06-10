@@ -38,6 +38,9 @@ def create_app(testing=False):
         app.config.from_object(DevelopmentConfig)
 
 
+    if not app.config.get('SQLALCHEMY_DATABASE_URI'):
+        raise ValueError(f"SQLALCHEMY_DATABASE_URI no está configurado para el entorno: {env}")
+    
     # CORS dinámico desde config
     CORS(app, resources={
         r"/v1/*": {

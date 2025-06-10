@@ -22,23 +22,13 @@ class BaseConfig:
 
 class DevelopmentConfig(BaseConfig):
     DEBUG = True
-    
-    def __init__(self):
-        self.SQLALCHEMY_DATABASE_URI = os.getenv("DEV_DATABASE_URI")
-        if not self.SQLALCHEMY_DATABASE_URI:
-            raise ValueError("DEV_DATABASE_URI debe estar definido en desarrollo.")
+    SQLALCHEMY_DATABASE_URI = os.getenv("DEV_DATABASE_URI") or "sqlite:///dev.db"
+    FRONTEND_URL = "http://localhost:3000"
     
 class ProductionConfig(BaseConfig):
     DEBUG = False
-
-    def __init__(self):
-        self.SQLALCHEMY_DATABASE_URI = os.getenv("SQLALCHEMY_DATABASE_URI")
-        if not self.SQLALCHEMY_DATABASE_URI:
-            raise ValueError("SQLALCHEMY_DATABASE_URI debe estar definido en producción.")
-        
-        frontend_url = os.getenv("FRONTEND_URL")
-        if frontend_url:
-            self.FRONTEND_URL = frontend_url
+    SQLALCHEMY_DATABASE_URI = os.getenv("SQLALCHEMY_DATABASE_URI")
+    FRONTEND_URL = os.getenv("FRONTEND_URL")
 
 
 class TestingConfig(BaseConfig):
