@@ -35,3 +35,4 @@ __pycache__/
 # Otros
 .DS_Store
 infovenv/
+env.py

@@ -1,0 +1,71 @@
+name: Test and Deploy
+
+on: 
+  push:
+    branches: ["main"]
+  
+  pull_request:  
+
+jobs: 
+  test-and-deploy:
+    runs-on: ubuntu-latest
+    services: 
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: infonovax
+          POSTGRES_PASSWORD: info12345
+          POSTGRES_DB: midb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    env:
+      SQLALCHEMY_DATABASE_URI: postgresql://infonovax:info12345@localhost:5432/midb
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Set up python
+        uses: actions/setup-python@v4  
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt    
+
+      - name: Install StepCI
+        run: |
+          curl -fsSL https://stepci.com/install.sh | sh
+          echo "$HOME/.stepci/bin" >> $GITHUB_PATH
+          
+      - name: Run Tests
+        run : stepci run test-register-login.yml    
+
+      - name: Deploy to render (si pasan los tests)  
+        if: success() && github.ref == 'refs/heads/main'
+        run: |
+          curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK}}
+
+      - name: Notify Slack - Success
+        if: success()
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+          --data '{"text":"✅ Tests pasaron y el deploy fue iniciado correctamente a Render."}' \
+          ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Notify Slack - Failure
+        if: failure()
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+          --data '{"text":"❌ Los tests fallaron. No se hizo deploy. Revisa el workflow en GitHub Actions."}' \
+          ${{ secrets.SLACK_WEBHOOK_URL }}    
+
+
+
