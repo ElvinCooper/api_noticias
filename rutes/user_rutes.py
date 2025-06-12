@@ -30,6 +30,7 @@ from schemas.user_schema import UserRegisterSchema, UserResponseSchema
 usuario_bp  = Blueprint('usuarios', __name__, description='Operaciones con Usuarios')
 
 
+
 # ----------------------------  CRUD de Usuarios  --------------------------------#
 @usuario_bp.route('/usuarios')
 class UsuarioResource(MethodView):
@@ -71,7 +72,6 @@ class UsuarioResource(MethodView):
             db.session.commit()
             current_app.logger.info("Rol 'usuario' creado automáticamente.")#abort(HTTPStatus.INTERNAL_SERVER_ERROR, message="No se encontro el predeterminado.")
 
-            
             # Crear el nuevo usuario
             nuevo_usuario = Usuario(
                                     id_usuario=str(uuid.uuid4()),
@@ -96,6 +96,8 @@ class UsuarioResource(MethodView):
             abort(HTTPStatus.INTERNAL_SERVER_ERROR, message=f"Error interno del servidor: {str(e)}")   
     
 
+@usuario_bp.route('/usuarios/<id_usuario>')
+class UsuarioUpdateResource(MethodView):
     @usuario_bp.arguments(UserUpdateSchema)
     @usuario_bp.response(HTTPStatus.OK, UserUpdateSchema) 
     @usuario_bp.alt_response(HTTPStatus.NOT_FOUND, schema=ErrorSchema, description="No existe un usuario con este id", example={"success": False, "message": "Not Found"})

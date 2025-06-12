@@ -13,7 +13,7 @@ tests:
           headers:
             Content-Type: application/json
           json:
-            email: "testuser${{random.uuid}}@example.com"  
+            email: "elvin@example.com"  
             password: "testpass123"       
             nombre: "Usuario Test"
             telefono: "123456789012"
@@ -21,14 +21,31 @@ tests:
             status: 201 
           extract:
             email: $.email  
-      # - name: Login del usuario creado
+      - name: Login de usuarios
+        http:
+          url: http://127.0.0.1:5000/api/v1/usuarios/login
+          method: POST
+          headers:
+            Content-Type: application/json
+          json:
+            email: "elvin@example.com"
+            password: "testpass123"
+          check:
+            status: 200
+          captures:
+            access_token:
+              jsonpath: $.access_token  
+            user_id:
+              jsonpath: $.user.id_usuario
+      # - name: Actualizar datos de un usuario
       #   http:
-      #     url: http://127.0.0.1:5000/api/v1/usuarios/login
-      #     method: POST
+      #     url: http://127.0.0.1:5000/api/v1/usuarios/${{user_id}}
+      #     method: PUT
       #     headers:
+      #       Authorization: Bearer ${{captures.access_token}}
       #       Content-Type: application/json
       #     json:
-      #       email: "${{steps[0].email}}"
-      #       password: "testpass123"
+      #       telefono: "8092501339"
+      #       email: "userupdate@gmail.com"          
       #     check:
-      #       status: 200
+      #       status: 200      

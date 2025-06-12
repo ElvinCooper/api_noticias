@@ -17,13 +17,12 @@ from apispec.ext.marshmallow.openapi import OpenAPIConverter
 from sqlite_config import enable_sqlite_foreign_keys 
 
 
-
 def create_app(testing=False):
     app = Flask(__name__)
     load_dotenv()
 
     # Cargar configuración por entorno
-    env = os.getenv("FLASK_ENV", "production")
+    env = os.getenv("FLASK_ENV", "development")
 
      # Activar soporte de claves foráneas en SQLite
     enable_sqlite_foreign_keys()
