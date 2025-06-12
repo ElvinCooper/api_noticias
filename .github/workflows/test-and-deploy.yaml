@@ -42,11 +42,13 @@ jobs:
 
       - name: Install and Run StepCI
         run: |
-          curl -fsSL https://stepci.com/install.sh | sh
-          export PATH="$HOME/.stepci/bin:$PATH"
-          which stepci
+          curl -L https://github.com/stepci/stepci/releases/download/v0.6.1/stepci_0.6.1_linux_amd64.tar.gz -o stepci.tar.gz
+          tar -xzf stepci.tar.gz
+          chmod +x stepci
+          sudo mv stepci /usr/local/bin/stepci
           stepci version
           stepci run test-register-login.yml
+
 
 
       - name: Deploy to render (si pasan los tests)  

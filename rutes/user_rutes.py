@@ -16,6 +16,7 @@ from flask import current_app
 import traceback
 import uuid
 from datetime import datetime, timezone
+from limiter import limiter, require_api_key
 
 
 # Importacion de Schemas para respuestas de los endpoints
@@ -50,6 +51,8 @@ class UsuarioResource(MethodView):
     @usuario_bp.response(HTTPStatus.CREATED, UserResponseSchema)
     @usuario_bp.alt_response(HTTPStatus.BAD_REQUEST, schema=ErrorSchema, description="Ya existe un usuario con ese email", example={"success": False, "message": "Ya existe un usuario con ese email"})
     @usuario_bp.alt_response(HTTPStatus.INTERNAL_SERVER_ERROR, schema=ErrorSchema, description="Error interno del servidor", example={"success": False, "message": "Error interno del servidor"})
+    @limiter.limit("5 per minute")  # intentos por minuto
+    @require_api_key
     def post(self, data_usuario):
         """ Registrar un nuevo usuario """
         try:
@@ -139,6 +142,8 @@ class UsuarioUpdateResource(MethodView):
 
 # -------------------------  Endpoint para hacer Login ------------------------------------#
 @usuario_bp.route('/usuarios/login')
+@limiter.limit("10 per minute")
+@require_api_key
 class LoginResource(MethodView):
 
     @usuario_bp.arguments(LoginSchema)
