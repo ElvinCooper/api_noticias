@@ -46,9 +46,9 @@ jobs:
           node-version: '20'
 
       - name: Run Flask app in background
-        run: |
-          export FLASK_APP=app.py
-          flask run --host=127.0.0.1 --port=5000 --no-reload &
+        run: python app.py &
+          
+          
 
       - name: Wait for server to start
         run: |
