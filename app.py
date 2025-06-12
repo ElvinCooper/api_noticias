@@ -15,6 +15,8 @@ from rutes.post_categoria_rutes import post_cat_bp
 from rutes.multimedia_rutes import multimedia_bp
 from apispec.ext.marshmallow.openapi import OpenAPIConverter
 from sqlite_config import enable_sqlite_foreign_keys 
+from limiter import limiter
+
 
 
 def create_app(testing=False):
@@ -55,6 +57,7 @@ def create_app(testing=False):
 
 
     init_extensions(app)
+    limiter.init_app(app)
 
     app.config.update({
         'API_TITLE': 'API Noticias',
