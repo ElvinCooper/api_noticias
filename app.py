@@ -17,7 +17,6 @@ from apispec.ext.marshmallow.openapi import OpenAPIConverter
 from sqlite_config import enable_sqlite_foreign_keys 
 
 
-
 def create_app(testing=False):
     app = Flask(__name__)
     load_dotenv()
