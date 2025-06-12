@@ -40,14 +40,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt    
 
-      - name: Install StepCI
+      - name: Install and Run StepCI
         run: |
           curl -fsSL https://stepci.com/install.sh | sh
-          echo "$HOME/.stepci/bin" >> $GITHUB_PATH
-          echo "PATH=$HOME/.stepci/bin:$PATH" >> $GITHUB_ENV
-          
-      - name: Run Tests
-        run : stepci run test-register-login.yml    
+          export PATH="$HOME/.stepci/bin:$PATH"
+          which stepci
+          stepci version
+          stepci run test-register-login.yml
+
 
       - name: Deploy to render (si pasan los tests)  
         if: success() && github.ref == 'refs/heads/main'
