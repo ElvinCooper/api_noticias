@@ -159,6 +159,17 @@ class LoginResource(MethodView):
             if not usuario:
                 abort(HTTPStatus.UNAUTHORIZED, message="Credenciales Invalidas")
             
+            
+            rol_por_defecto = Rol.query.filter_by(descripcion="usuario").first()
+            if not rol_por_defecto:
+                rol_por_defecto = Rol(
+                id_rol=str(uuid.uuid4()),
+                descripcion="usuario"
+            )
+            db.session.add(rol_por_defecto)
+            db.session.commit()
+            current_app.logger.info("Rol 'usuario' creado automáticamente.")
+
             # Generar token de autenticacion
             additional_claims = {"rol": usuario.rol.descripcion}
             access_token   = create_access_token(identity=usuario.id_usuario, additional_claims=additional_claims)

@@ -64,6 +64,8 @@ jobs:
             curl -s http://localhost:5000/ && break || sleep 1
           done  
 
+      - name: Mostrar log del servidor Flask
+        run: cat flask.log
 
       - name: Run StepCI tests via NPX
         run: npx stepci run test-register-login.yml
