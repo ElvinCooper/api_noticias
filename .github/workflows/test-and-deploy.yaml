@@ -45,10 +45,13 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Run Flask app in background
-        run: python app.py &
-          
-          
+      - name: Run Flask with logs
+        run: |
+          export FLASK_APP=app.py
+          export FLASK_ENV=development
+          flask run --host=127.0.0.1 --port=5000 --no-reload > flask.log 2>&1 &
+          sleep 2
+          cat flask.log          
 
       - name: Wait for server to start
         run: |
