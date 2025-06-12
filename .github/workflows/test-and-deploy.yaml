@@ -40,16 +40,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt    
 
-      - name: Install Node.js and StepCI
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20'
-
-      - name: Install StepCI
-        run: npm install -g stepci
-
-      - name: Run StepCI tests
-        run: stepci run test-register-login.yml
+      - name: Run StepCI tests using Docker
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/app \
+            -w /app \
+            -e SQLALCHEMY_DATABASE_URI=${{ env.SQLALCHEMY_DATABASE_URI }} \
+            stepci/stepci:latest run test-register-login.yml
 
 
       - name: Deploy to render (si pasan los tests)  
