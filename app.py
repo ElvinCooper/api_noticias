@@ -22,7 +22,7 @@ def create_app(testing=False):
     load_dotenv()
 
     # Cargar configuración por entorno
-    env = os.getenv("FLASK_ENV", "development")
+    env = os.getenv("FLASK_ENV", "production")
 
      # Activar soporte de claves foráneas en SQLite
     enable_sqlite_foreign_keys()
