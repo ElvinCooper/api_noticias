@@ -40,14 +40,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt    
 
-      - name: Install and Run StepCI
-        run: |
-          curl -L https://github.com/stepci/stepci/releases/download/v2.8.2/stepci-2.8.2.tar.gz -o stepci.tar.gz
-          tar -xzf stepci.tar.gz
-          chmod +x stepci
-          sudo mv stepci /usr/local/bin/stepci
-          stepci version
-          stepci run test-register-login.yml
+      - name: Install Node.js and StepCI
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install StepCI
+        run: npm install -g stepci
+
+      - name: Run StepCI tests
+        run: stepci run test-register-login.yml
 
 
       - name: Deploy to render (si pasan los tests)  
