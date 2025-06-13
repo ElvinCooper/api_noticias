@@ -1,7 +1,8 @@
 version: "1.0"
 name: Test Registro y Login
 config:
-  http: {}
+  http: 
+    timeout: 1000
 tests:
   register_and_login:
     name: Crear usuario y hacer login
@@ -12,6 +13,7 @@ tests:
           method: POST
           headers:
             Content-Type: application/json
+            X-API-KEY: ${{env.FRONTEND_API_KEY}}
           json:
             email: "elvin@example.com"  
             password: "testpass123"       
@@ -27,6 +29,7 @@ tests:
           method: POST
           headers:
             Content-Type: application/json
+            X-API-KEY: ${{env.FRONTEND_API_KEY}}
           json:
             email: "elvin@example.com"
             password: "testpass123"

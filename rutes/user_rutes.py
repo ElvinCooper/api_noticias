@@ -46,13 +46,12 @@ class UsuarioResource(MethodView):
         return usuarios 
 
 
-
+    @require_api_key()
+    @limiter.limit("5 per minute")  # intentos por minuto    
     @usuario_bp.arguments(UserRegisterSchema)
     @usuario_bp.response(HTTPStatus.CREATED, UserResponseSchema)
     @usuario_bp.alt_response(HTTPStatus.BAD_REQUEST, schema=ErrorSchema, description="Ya existe un usuario con ese email", example={"success": False, "message": "Ya existe un usuario con ese email"})
-    @usuario_bp.alt_response(HTTPStatus.INTERNAL_SERVER_ERROR, schema=ErrorSchema, description="Error interno del servidor", example={"success": False, "message": "Error interno del servidor"})
-    @limiter.limit("5 per minute")  # intentos por minuto
-    @require_api_key()
+    @usuario_bp.alt_response(HTTPStatus.INTERNAL_SERVER_ERROR, schema=ErrorSchema, description="Error interno del servidor", example={"success": False, "message": "Error interno del servidor"})    
     def post(self, data_usuario):
         """ Registrar un nuevo usuario """
         try:
@@ -140,18 +139,21 @@ class UsuarioUpdateResource(MethodView):
             abort (HTTPStatus.INTERNAL_SERVER_ERROR, message="Error al actualizar el usuario")
 
 
-# -------------------------  Endpoint para hacer Login ------------------------------------#
-@usuario_bp.route('/usuarios/login')
-@limiter.limit("10 per minute")
-@require_api_key()
-class LoginResource(MethodView):
 
+# -------------------------  Endpoint para hacer Login ------------------------------------#
+
+@usuario_bp.route('/usuarios/login')
+class LoginResource(MethodView):
+    
+    @require_api_key()
+    @limiter.limit("10 per minute")
     @usuario_bp.arguments(LoginSchema)
     @usuario_bp.response(HTTPStatus.OK, LoginResponseSchema)
     @usuario_bp.alt_response(HTTPStatus.UNAUTHORIZED, schema=ErrorSchema, description="Credenciales inválidas", example={"success": False, "message": "Credenciales inválidas"})
     @usuario_bp.alt_response(HTTPStatus.INTERNAL_SERVER_ERROR, schema=ErrorSchema, description="Error al generar token", example={"success": False, "message": "Error interno del servidor"})   
+    
     def post(self, data_login):
-        """ Login de usuarios """
+        """ Login de usuarios """        
         try:
 
             # Buscar usuario por email

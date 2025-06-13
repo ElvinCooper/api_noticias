@@ -8,7 +8,7 @@ from functools import wraps
 limiter = Limiter(key_func=get_remote_address)
 
 # Claves válidas
-VALID_API_KEYS = {os.getenv("FRONTEND_APY_KEY"), "otra-key"}
+VALID_API_KEYS = {os.getenv("FRONTEND_API_KEY"), "otra-key"}
 
 
 # Decorador para verificar API Key
