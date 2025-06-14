@@ -1,8 +1,17 @@
 version: "1.0"
+
 name: Test Registro y Login
+
+spec: ./schemas.yml
+
 config:
   http: 
-    timeout: 1000
+    timeout: 1000    
+  variables:
+    username: testuser
+    email: elvincooper@gmail.com
+    password: securepassword
+    telefono: 123456789012
 tests:
   register_and_login:
     name: Crear usuario y hacer login
@@ -13,14 +22,16 @@ tests:
           method: POST
           headers:
             Content-Type: application/json
-            X-API-KEY: ${{env.FRONTEND_API_KEY}}
+            X-API-KEY: ${{env.FRONTEND_API_KEY}}            
           json:
-            email: "elvin@example.com"  
-            password: "testpass123"       
-            nombre: "Usuario Test"
-            telefono: "123456789012"
-          check:
-            status: 201 
+            email: "{{ email }}"  
+            password: "{{ password }}"       
+            nombre:  "{{ username }}"
+            telefono: "{{ telefono }}"          
+          responses:
+            status_code: 201 
+            json:
+              id_usuario: $user_id  # para guardar el id del usuario creado un la variable user_id
           extract:
             email: $.email  
       - name: Login de usuarios
@@ -29,26 +40,147 @@ tests:
           method: POST
           headers:
             Content-Type: application/json
-            X-API-KEY: ${{env.FRONTEND_API_KEY}}
+            X-API-KEY: ${{env.FRONTEND_API_KEY}}            
           json:
-            email: "elvin@example.com"
-            password: "testpass123"
-          check:
-            status: 200
+            email: "{{ email }}"
+            password: "{{ password }}"
+          responses:
+            status_code: 200
           captures:
             access_token:
               jsonpath: $.access_token  
             user_id:
               jsonpath: $.user.id_usuario
-      # - name: Actualizar datos de un usuario
-      #   http:
-      #     url: http://127.0.0.1:5000/api/v1/usuarios/${{user_id}}
-      #     method: PUT
-      #     headers:
-      #       Authorization: Bearer ${{captures.access_token}}
-      #       Content-Type: application/json
-      #     json:
-      #       telefono: "8092501339"
-      #       email: "userupdate@gmail.com"          
-      #     check:
-      #       status: 200      
+      - name: Actualizar datos de un usuario
+        http:
+          url: http://127.0.0.1:5000/api/v1/usuarios/{{ user_id }}
+          method: PUT
+          headers:
+             Content-Type: application/json
+             Authorization: Bearer ${{captures.access_token}}            
+          json:
+            nombre: "{{ username }}"       
+            telefono: "{{ telefono }}"
+            email: "{{ email }}"          
+          responses::
+            status_code: 200      
+      - name: Consultar todos los usuarios
+        http:
+          url: http://127.0.0.1:5000/api/v1/usuarios
+          method: GET
+          headers:
+            Authorization: Bearer ${{captures.access_token}}
+          responses:
+            status_code: 200    
+
+            #--------------------------------  Tests para los Endpoints de Posts -----------------------------#  
+  post:
+    name: Operaciones con Post
+    steps:
+      - name: Consultar todos los Posts
+        http:
+          url: http://127.0.0.1:5000/api/v1/posts
+          method: GET
+          params:
+            page: 1
+            per_page: 10
+          responses:
+            status_code: 200
+            schema:
+              type: object
+              properties:
+                total:
+                  type: integer
+                page:
+                  type: integer
+                per_page:
+                  type: integer
+                items:
+                  type: array
+                  items:
+                    type: object          
+      - name: Crear post
+        http:
+          url: http://127.0.0.1:5000/api/v1/posts
+          method: POST
+          headers:
+            Content-Type: application/json
+            Authorization: Bearer ${{captures.access_token}}            
+          json:
+            titulo: "Mi primer post de prueba"
+            contenido: "Este es el contenido de mi post de prueba"
+            id_usuario: "{{ user_id }}"
+            id_pais: "US"
+            visible: true
+            status: true
+            categoria_ids: []
+          responses:
+            status_code: 201
+            son:
+              id_post: $post_id
+      - name: Actualizar un Post existente
+        http:
+          url: http://127.0.0.1:5000/api/v1/posts/{{ id_post }}
+          method: PUT
+          headers:
+            Content-Type: application/json
+            accept: application/json
+          json:
+            contenido: reprehenderit Excepteur aliqua
+            id_post: mollit ullamco esse ut magna
+          responses:
+            status_code: 200
+            schema:              
+      - name: Eliminar un Post existente
+        http:
+          url: http://127.0.0.1:5000/api/v1/posts/{{ id_post }}
+          method: DELETE
+          headers:
+            Content-Type: application/json
+            accept: application/json
+          json:
+            anim_eb4: in consequat
+            add9: 15455427.024198532
+            incididunt_ab0: -52233274
+            officia6: nisi
+            titulo: Duis dolor Lorem
+            id_pais: nostrud tempor occaecat fugiat
+            id_post: ut nostrud
+            fecha_publicacion: "1946-10-24T03:21:15.0Z"
+            status: true
+          responses:
+            status_code: 200                  
+
+ #--------------------------------  Tests para los Endpoints de Favoritos  -----------------------------#  
+
+# favoritos:
+#     name: Operaciones con Favoritos
+#     steps:
+#       - name: Consultar para crear un nuevo favorito
+#         http:
+#           url: http://127.0.0.1:5000/api/v1/favoritos
+#           method: GET
+#           headers:
+#             Content-Type: application/json
+#             accept: application/json
+#           json:
+#             id_usuario: nisi
+#             id_post: ut deserunt ad qui
+#             usuario:
+#               id_usuario: anim mollit elit do
+#               nombre: sit aute non amet
+#               email: "{{ email }}"
+#             post:
+#               laborum_a59: 19596433
+#               Utbf5: 45914205.81889388
+#               ipsum_10: true
+#               ina: dolor
+#               qui_20: false
+#               cupidatatb1: 86497419.90027052
+#               esse_f: 43551402.797732055
+#               dolor_28: false
+#               voluptate_62: id elit esse in sit
+#           responses:
+#             status_code: 201
+#             #schema:
+#              # $ref: "#/components/schemas/Favorito1"            

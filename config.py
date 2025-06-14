@@ -23,17 +23,12 @@ class BaseConfig:
 class DevelopmentConfig(BaseConfig):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = os.getenv("DEV_DATABASE_URI") or "sqlite:///dev.db"
-    FRONTEND_URL = "http://localhost:3000"
     
 class ProductionConfig(BaseConfig):
     DEBUG = False
     SQLALCHEMY_DATABASE_URI = os.getenv("SQLALCHEMY_DATABASE_URI")
-    FRONTEND_URL = os.getenv("FRONTEND_URL")
-
 
 class TestingConfig(BaseConfig):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = os.getenv("SQLALCHEMY_DATABASE_URI")
-    JWT_SECRET_KEY = "test-secret"
-    SECRET_KEY = "test"
-    FRONTEND_URL = "http://localhost:3000"
+    

@@ -13,8 +13,6 @@ from rutes.categoria_rutes import categorias_bp
 from rutes.paises_rutes import pais_bp
 from rutes.post_categoria_rutes import post_cat_bp
 from rutes.multimedia_rutes import multimedia_bp
-from apispec.ext.marshmallow.openapi import OpenAPIConverter
-from sqlite_config import enable_sqlite_foreign_keys 
 from limiter import limiter
 
 
@@ -25,9 +23,6 @@ def create_app(testing=False):
 
     # Cargar configuración por entorno
     env = os.getenv("FLASK_ENV", "production")
-
-     # Activar soporte de claves foráneas en SQLite
-    enable_sqlite_foreign_keys()
 
     app.config['SQLALCHEMY_ECHO'] = True  # Para que muestre los Querys que se ejecutan.
 
