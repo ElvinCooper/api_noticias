@@ -1,0 +1,51 @@
+version: "1.0"
+name: Test IPv4 vs localhost
+config:
+  http:
+    timeout: 15000
+
+tests:
+  ip_test:
+    name: Probar diferentes configuraciones de IP
+    steps:
+      # - name: Test con localhost
+      #   http:
+      #     url: http://localhost:5000/api/v1/usuarios
+      #     method: POST
+      #     headers:
+      #       Content-Type: application/json
+      #     json:
+      #       email: "test@test.com"
+      #       password: "test123"
+      #       nombre: "test"
+      #       telefono: "123456789"
+      #     check:
+      #       status: /2\d\d|4\d\d|5\d\d/
+        
+      # - name: Test con 127.0.0.1
+      #   http:
+      #     url: http://127.0.0.1:5000/api/v1/usuarios
+      #     method: POST
+      #     headers:
+      #       Content-Type: application/json
+      #     json:
+      #       email: "test2@test.com"
+      #       password: "test123"
+      #       nombre: "test2"
+      #       telefono: "123456789"
+      #     check:
+      #       status: /2\d\d|4\d\d|5\d\d/
+            
+      - name: Test con IP local
+        http:
+          url: http://192.168.203.19:5000/api/v1/usuarios
+          method: POST
+          headers:
+            Content-Type: application/json
+          json:
+            email: "test3@test.com"
+            password: "test123"
+            nombre: "test3"
+            telefono: "123456789"
+          check:
+            status: /2\d\d|4\d\d|5\d\d/

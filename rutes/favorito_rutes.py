@@ -120,7 +120,7 @@ class DeleteFavoritoResource(MethodView):
     @favorito_bp.response(HTTPStatus.CREATED, FavoritoResponseSchema)
     @favorito_bp.alt_response(HTTPStatus.BAD_REQUEST, schema=ErrorSchema, description="Falta el campo id_post", example={"success": False, "message": "El campo 'id_post' es obligatorio"})
     @favorito_bp.alt_response(HTTPStatus.NOT_FOUND, schema=ErrorSchema, description="Post no encontrado", example={"success": False, "message": "El post no existe"})
-    def post(self, data):
+    def delete(self, data):
         """Eliminar un post como favorito"""
         id_post = data.get("id_post")
         id_usuario = get_jwt_identity()

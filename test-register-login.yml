@@ -7,7 +7,11 @@ spec: ./schemas.yml
 config:
   http: 
     timeout: 1000    
+
+         # cambiar 127.0.0.1 para para github actions
+
   variables:
+    url_base: http://192.168.203.19:5000
     username: testuser
     email: elvincooper@gmail.com
     password: securepassword
@@ -18,16 +22,16 @@ tests:
     steps:
       - name: Registrar nuevo usuario
         http:
-          url: http://127.0.0.1:5000/api/v1/usuarios
+          url: http://192.168.203.19:5000/usuarios
           method: POST
           headers:
             Content-Type: application/json
             X-API-KEY: ${{env.FRONTEND_API_KEY}}            
           json:
-            email: "{{ email }}"  
-            password: "{{ password }}"       
-            nombre:  "{{ username }}"
-            telefono: "{{ telefono }}"          
+            email: "{{ variables.email }}"  
+            password: "{{ variables.password }}"       
+            nombre:  "{{ variables.username }}"
+            telefono: "{{ variables.telefono }}"          
           responses:
             status_code: 201 
             json:
@@ -36,7 +40,7 @@ tests:
             email: $.email  
       - name: Login de usuarios
         http:
-          url: http://127.0.0.1:5000/api/v1/usuarios/login
+          url: http://192.168.203.19:5000/login
           method: POST
           headers:
             Content-Type: application/json
@@ -53,7 +57,7 @@ tests:
               jsonpath: $.user.id_usuario
       - name: Actualizar datos de un usuario
         http:
-          url: http://127.0.0.1:5000/api/v1/usuarios/{{ user_id }}
+          url: http://192.168.203.19:5000/usuarios/{{ user_id }}
           method: PUT
           headers:
              Content-Type: application/json
@@ -62,11 +66,11 @@ tests:
             nombre: "{{ username }}"       
             telefono: "{{ telefono }}"
             email: "{{ email }}"          
-          responses::
+          responses:
             status_code: 200      
       - name: Consultar todos los usuarios
         http:
-          url: http://127.0.0.1:5000/api/v1/usuarios
+          url: http://192.168.203.19:5000/usuarios
           method: GET
           headers:
             Authorization: Bearer ${{captures.access_token}}
@@ -79,7 +83,7 @@ tests:
     steps:
       - name: Consultar todos los Posts
         http:
-          url: http://127.0.0.1:5000/api/v1/posts
+          url: http://192.168.203.19:5000/posts
           method: GET
           params:
             page: 1
@@ -101,7 +105,7 @@ tests:
                     type: object          
       - name: Crear post
         http:
-          url: http://127.0.0.1:5000/api/v1/posts
+          url: http://192.168.203.19:5000/posts
           method: POST
           headers:
             Content-Type: application/json
@@ -116,11 +120,11 @@ tests:
             categoria_ids: []
           responses:
             status_code: 201
-            son:
+            json:
               id_post: $post_id
       - name: Actualizar un Post existente
         http:
-          url: http://127.0.0.1:5000/api/v1/posts/{{ id_post }}
+          url: http://192.168.203.19:5000/posts/{{ id_post }}
           method: PUT
           headers:
             Content-Type: application/json
@@ -133,7 +137,7 @@ tests:
             schema:              
       - name: Eliminar un Post existente
         http:
-          url: http://127.0.0.1:5000/api/v1/posts/{{ id_post }}
+          url: http://192.168.203.19:5000/posts/{{ id_post }}
           method: DELETE
           headers:
             Content-Type: application/json
@@ -153,34 +157,131 @@ tests:
 
  #--------------------------------  Tests para los Endpoints de Favoritos  -----------------------------#  
 
-# favoritos:
-#     name: Operaciones con Favoritos
-#     steps:
-#       - name: Consultar para crear un nuevo favorito
-#         http:
-#           url: http://127.0.0.1:5000/api/v1/favoritos
-#           method: GET
-#           headers:
-#             Content-Type: application/json
-#             accept: application/json
-#           json:
-#             id_usuario: nisi
-#             id_post: ut deserunt ad qui
-#             usuario:
-#               id_usuario: anim mollit elit do
-#               nombre: sit aute non amet
-#               email: "{{ email }}"
-#             post:
-#               laborum_a59: 19596433
-#               Utbf5: 45914205.81889388
-#               ipsum_10: true
-#               ina: dolor
-#               qui_20: false
-#               cupidatatb1: 86497419.90027052
-#               esse_f: 43551402.797732055
-#               dolor_28: false
-#               voluptate_62: id elit esse in sit
-#           responses:
-#             status_code: 201
-#             #schema:
-#              # $ref: "#/components/schemas/Favorito1"            
+  favoritos:
+      name: Operaciones con Favoritos
+      steps:
+        - name: Crear un nuevo favorito
+          http:
+            url: http://192.168.203.19:5000/favoritos
+            method: POST
+            headers:
+              Content-Type: application/json
+              accept: application/json
+            json:
+              id_usuario: "{{ user_id }}"
+              id_post: "{{ post_id }}"
+              responses:
+          status_code: 201
+          captures:
+            id_usuario:
+              jsonpath: $.id_usuario
+            id_post:
+              jsonpath: $.id_post  
+        - name: Consultar un Post favorito por su ID
+          http:
+            url: http://192.168.203.19:5000/favoritos/{{ captures.id_usuario }}
+            method: GET
+            headers:
+              Content-Type: application/json
+              accept: application/json
+          responses:
+            status_code: 200                           
+        - name: Eliminar un post como favorito
+          http:
+            url: http://192.168.203.19:5000/favorito/eliminar/{{ captures.id_post }}
+            method: DELETE
+            headers:
+              Content-Type: application/json
+              Authorization: Bearer ${{ captures.access_token }}                        
+            responses:
+              status: 201    
+
+#--------------------------------  Tests para los Endpoints de Favoritos  -----------------------------#                
+  categorias:
+      name: Operaciones con Categorias
+      steps:
+        - name: Registrar una nueva Categoria
+          http:
+            url: http://192.168.203.19:5000/categoria
+            method: POST
+            headers:
+              Content-Type: application/json
+              Authorization: Bearer ${{ captures.access_token }}
+            json:
+              descripcion: quis
+              total_publicaciones: 19658522
+            responses:
+              status: 201
+              captures:
+              id_categoria:
+                jsonpath: $.id_categoria  
+        - name: Consultar una categoria por su ID
+          http:
+            url: http://192.168.203.19:5000/{{ captures.id_categoria }}
+            method: GET
+            responses:
+              status: 200
+
+#--------------------------------  Operaciones con Paises -----------------------------#    
+  pais:
+    name: Operaciones con Paises
+    steps:
+      - name: Registrar un nuevo Pais
+        http:
+          url: http://192.168.203.19:5000/paises
+          method: POST
+          headers:
+            Content-Type: application/json
+            Authorization: Bearer ${{ captures.access_token }}
+          json:
+            nombre_pais: ex dolore laborum fugiat ea
+            abrebiatura_pais: rep
+          responses:
+            status: 201      
+            captures:
+              id_pais:
+                jsonpath: $.id_pais
+      
+      - name: Consultar todos los paises
+        http:
+          url: http://192.168.203.19:5000/paises
+          method: GET
+          responses:
+            status: 200            
+
+  multimedia:
+    name: Crear y consultar un recurso multimedia
+    steps:
+      - name: Crear multimedia
+        http:
+          url: http://192.168.203.19:5000/api/v1/multimedia
+          method: POST
+          headers:
+            Content-Type: application/json
+            Authorization: Bearer ${{ captures.access_token }}
+          json:
+            nombre_archivo: "video_test_001.mp4"
+            url_multimedia_alt: "https://cdn.test.com/video_test_001.mp4"
+            tipo_archivo: "video"
+          responses:
+            status_code: 201
+          captures:
+            id_multimedia:
+              jsonpath: $.id_multimedia
+          set:
+            id_multimedia: "{{ captures.id_multimedia }}"
+
+      - name: Consultar multimedia por ID
+        http:
+          url: http://192.168.203.19:5000/api/v1/multimedia/{{ id_multimedia }}
+          method: GET
+          headers:
+            Authorization: Bearer ${{ captures.access_token }}
+            Content-Type: application/json
+          responses:
+            status_code: 200
+            json:
+              nombre_archivo: "video_test_001.mp4"
+              tipo_archivo: "video"
+
+        

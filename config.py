@@ -22,7 +22,7 @@ class BaseConfig:
 
 class DevelopmentConfig(BaseConfig):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = os.getenv("DEV_DATABASE_URI") or "sqlite:///dev.db"
+    SQLALCHEMY_DATABASE_URI = os.getenv("DEV_DATABASE_URI")
     
 class ProductionConfig(BaseConfig):
     DEBUG = False
