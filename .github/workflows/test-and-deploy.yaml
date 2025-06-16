@@ -49,6 +49,9 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Install StepCI locally (dev dependency)
+        run: npm install stepci@2.8.2 --save-dev    
+
       - name: Run Flask manually in background with log
         run: |
           python app.py > flask.log 2>&1 &
