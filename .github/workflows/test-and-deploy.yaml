@@ -4,7 +4,9 @@ on:
   push:
     branches: ["main"]
   
-  pull_request:  
+  pull_request:
+    branches: ["main"]  
+  
 
 jobs: 
   test-and-deploy:
@@ -70,12 +72,12 @@ jobs:
         run: npx stepci run test-register-login.yml
 
       - name: Deploy to render (si pasan los tests)  
-        if: success() && github.ref == 'refs/heads/main'
+        if: success() && github.ref == 'refs/heads/main'    
         run: |
           curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
 
       - name: Notify Slack - Success
-        if: success()
+        if: success() && github.ref == 'refs/heads/main'
         run: |
           curl -X POST -H 'Content-type: application/json' \
           --data '{"text":"✅ Los Tests pasaron y el deploy fue iniciado correctamente a Render."}' \

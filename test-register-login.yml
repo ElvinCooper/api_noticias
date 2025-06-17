@@ -9,9 +9,8 @@ config:
     timeout: 1000    
 
          # cambiar 127.0.0.1 para para github actions
-
   variables:
-    url_base: http:http://localhost:5000
+    url_base: http://127.0.0.1:5000
     username: testuser
     email: elvincooper@gmail.com
     password: securepassword
@@ -22,7 +21,7 @@ tests:
     steps:
       - name: Registrar nuevo usuario
         http:
-          url: http:http://localhost:5000/usuarios
+          url: http://127.0.0.1:5000/usuarios
           method: POST
           headers:
             Content-Type: application/json
@@ -40,7 +39,7 @@ tests:
             email: $.email  
       - name: Login de usuarios
         http:
-          url: http:http://localhost:5000/login
+          url: http://127.0.0.1:5000/login
           method: POST
           headers:
             Content-Type: application/json
@@ -57,7 +56,7 @@ tests:
               jsonpath: $.user.id_usuario
       - name: Actualizar datos de un usuario
         http:
-          url: http:http://localhost:5000/usuarios/{{ user_id }}
+          url: http://127.0.0.1:5000/usuarios/{{ user_id }}
           method: PUT
           headers:
              Content-Type: application/json
@@ -70,7 +69,7 @@ tests:
             status_code: 200      
       - name: Consultar todos los usuarios
         http:
-          url: http:http://localhost:5000/usuarios
+          url: http://127.0.0.1:5000/usuarios
           method: GET
           headers:
             Authorization: Bearer ${{captures.access_token}}
@@ -83,7 +82,7 @@ tests:
     steps:
       - name: Consultar todos los Posts
         http:
-          url: http:http://localhost:5000/posts
+          url: http://127.0.0.1:5000/posts
           method: GET
           params:
             page: 1
@@ -105,7 +104,7 @@ tests:
                     type: object          
       - name: Crear post
         http:
-          url: http:http://localhost:5000/posts
+          url: http://127.0.0.1:5000/posts
           method: POST
           headers:
             Content-Type: application/json
@@ -124,7 +123,7 @@ tests:
               id_post: $post_id
       - name: Actualizar un Post existente
         http:
-          url: http:http://localhost:5000/posts/{{ id_post }}
+          url: http://127.0.0.1:5000/posts/{{ id_post }}
           method: PUT
           headers:
             Content-Type: application/json
@@ -137,7 +136,7 @@ tests:
             schema:              
       - name: Eliminar un Post existente
         http:
-          url: http:http://localhost:5000/posts/{{ id_post }}
+          url: http://127.0.0.1:5000/posts/{{ id_post }}
           method: DELETE
           headers:
             Content-Type: application/json
@@ -162,7 +161,7 @@ tests:
       steps:
         - name: Crear un nuevo favorito
           http:
-            url: http:http://localhost:5000/favoritos
+            url: http://127.0.0.1:5000/favoritos
             method: POST
             headers:
               Content-Type: application/json
@@ -179,7 +178,7 @@ tests:
               jsonpath: $.id_post  
         - name: Consultar un Post favorito por su ID
           http:
-            url: http:http://localhost:5000/favoritos/{{ captures.id_usuario }}
+            url: http://127.0.0.1:5000/favoritos/{{ captures.id_usuario }}
             method: GET
             headers:
               Content-Type: application/json
@@ -188,7 +187,7 @@ tests:
             status_code: 200                           
         - name: Eliminar un post como favorito
           http:
-            url: http:http://localhost:5000/favorito/eliminar/{{ captures.id_post }}
+            url: http://127.0.0.1:5000/favorito/eliminar/{{ captures.id_post }}
             method: DELETE
             headers:
               Content-Type: application/json
@@ -202,7 +201,7 @@ tests:
       steps:
         - name: Registrar una nueva Categoria
           http:
-            url: http:http://localhost:5000/categoria
+            url: http://127.0.0.1:5000/categoria
             method: POST
             headers:
               Content-Type: application/json
@@ -217,7 +216,7 @@ tests:
                 jsonpath: $.id_categoria  
         - name: Consultar una categoria por su ID
           http:
-            url: http:http://localhost:5000/{{ captures.id_categoria }}
+            url: http://127.0.0.1:5000/{{ captures.id_categoria }}
             method: GET
             responses:
               status: 200
@@ -228,7 +227,7 @@ tests:
     steps:
       - name: Registrar un nuevo Pais
         http:
-          url: http:http://localhost:5000/paises
+          url: http://127.0.0.1:5000/paises
           method: POST
           headers:
             Content-Type: application/json
@@ -244,7 +243,7 @@ tests:
       
       - name: Consultar todos los paises
         http:
-          url: http:http://localhost:5000/paises
+          url: http://127.0.0.1:5000/paises
           method: GET
           responses:
             status: 200            
@@ -254,7 +253,7 @@ tests:
     steps:
       - name: Crear multimedia
         http:
-          url: http:http://localhost:5000/api/v1/multimedia
+          url: http://127.0.0.1:5000/api/v1/multimedia
           method: POST
           headers:
             Content-Type: application/json
@@ -273,7 +272,7 @@ tests:
 
       - name: Consultar multimedia por ID
         http:
-          url: http:http://localhost:5000/api/v1/multimedia/{{ id_multimedia }}
+          url: http://127.0.0.1:5000/api/v1/multimedia/{{ id_multimedia }}
           method: GET
           headers:
             Authorization: Bearer ${{ captures.access_token }}
