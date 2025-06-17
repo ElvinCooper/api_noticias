@@ -9,14 +9,20 @@ limiter = Limiter(key_func=get_remote_address)
 
 
 # Decorador para verificar API Key
+from functools import wraps
+from flask import request, jsonify
+import os
+
 def require_api_key():
     def decorator(fn):
         @wraps(fn)
         def wrapper(*args, **kwargs):
-            # Claves válidas
-            VALID_API_KEYS = {os.getenv("FRONTEND_API_KEY"), "otra-key"}
+            valid_keys = {os.getenv("FRONTEND_API_KEY"), "otra-key"}
             api_key = request.headers.get('X-API-KEY')
-            if api_key not in VALID_API_KEYS:
+            print("HEADERS:", dict(request.headers))
+            print("API_KEY RECIBIDA:", api_key)  # ← log crítico
+            print("VALID_KEYS:", valid_keys)     # ← log crítico
+            if api_key not in valid_keys:
                 return jsonify({"error": "API Key inválida"}), 401
             return fn(*args, **kwargs)
         return wrapper
