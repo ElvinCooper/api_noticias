@@ -7,23 +7,26 @@ from functools import wraps
 # Configurar rate limiter
 limiter = Limiter(key_func=get_remote_address)
 
+# Obtener la API key desde la variable de entorno
+FRONTEND_API_KEY = os.getenv("FRONTEND_API_KEY")
+
+# Claves válidas
+VALID_API_KEYS = set()
+if FRONTEND_API_KEY:
+    VALID_API_KEYS.add(FRONTEND_API_KEY)
+VALID_API_KEYS.add("otra-key")
 
 # Decorador para verificar API Key
-from functools import wraps
-from flask import request, jsonify
-import os
-
 def require_api_key():
     def decorator(fn):
         @wraps(fn)
         def wrapper(*args, **kwargs):
-            valid_keys = {os.getenv("FRONTEND_API_KEY"), "otra-key"}
             api_key = request.headers.get('X-API-KEY')
             print("HEADERS:", dict(request.headers))
-            print("API_KEY RECIBIDA:", api_key)  # ← log crítico
-            print("VALID_KEYS:", valid_keys)     # ← log crítico
-            if api_key not in valid_keys:
-                return jsonify({"error": "API Key inválida"}), 401
+            print("API_KEY RECIBIDA:", api_key)
+            print("VALID_KEYS:", VALID_API_KEYS)
+            if not api_key or api_key not in VALID_API_KEYS:
+                return jsonify({"error": "API Key inválida o no proporcionada"}), 401
             return fn(*args, **kwargs)
         return wrapper
     return decorator
