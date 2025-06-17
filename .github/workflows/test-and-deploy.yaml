@@ -58,8 +58,7 @@ jobs:
         run: |
           python app.py > flask.log 2>&1 &
           sleep 5
-          echo "===== LOG DE FLASK ====="
-          cat flask.log    
+              
 
       - name: Wait for server to start
         run: |
@@ -71,8 +70,8 @@ jobs:
       - name: Run StepCI tests via NPX
         run: npx stepci run test-register-login.yml
 
-      - name: Deploy to render (si pasan los tests)  
-        if: success() && github.ref == 'refs/heads/main'    
+      - name: Deploy to render (si pasan los tests y la rama es main)  
+        if: success() && github.ref == 'refs/heads/main'   
         run: |
           curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
 
