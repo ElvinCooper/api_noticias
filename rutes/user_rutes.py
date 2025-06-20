@@ -74,13 +74,16 @@ class UsuarioResource(MethodView):
             db.session.commit()
             current_app.logger.info("Rol 'usuario' creado automáticamente.")#abort(HTTPStatus.INTERNAL_SERVER_ERROR, message="No se encontro el predeterminado.")
 
+            # obtener el telefono 
+            telefono = data_usuario.get('telefono')
+
             # Crear el nuevo usuario
             nuevo_usuario = Usuario(
                                     id_usuario=str(uuid.uuid4()),
                                     nombre=data_usuario['nombre'],
                                     email=data_usuario['email'],
                                     password=generate_password_hash(data_usuario['password']),
-                                    telefono=data_usuario['telefono'],
+                                    telefono=telefono,
                                     id_rol=rol_por_defecto.id_rol,
                                     fecha_registro=datetime.now(timezone.utc)
                                 )

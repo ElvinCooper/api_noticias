@@ -27,3 +27,6 @@ class FavoritoResponseSchema(Schema):
     mensaje = fields.String()
     id_usuario = fields.String()
     id_post = fields.String()
+
+class FavoritoDeleteSchema(Schema):    
+    id_post = fields.String(required=True)

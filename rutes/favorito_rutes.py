@@ -111,13 +111,13 @@ class MarcarFavoritoResource(MethodView):
 
 
 #------------------------------------ Enpoint para eliminar un favorito ---------------------------------------#
-
+from schemas.favorito_schema import FavoritoDeleteSchema
 @favorito_bp.route("/favorito/eliminar")
 class DeleteFavoritoResource(MethodView):
 
     @jwt_required()
-    @favorito_bp.arguments(FavoritoInputSchema)
-    @favorito_bp.response(HTTPStatus.CREATED, FavoritoResponseSchema)
+    @favorito_bp.arguments(FavoritoDeleteSchema)
+    @favorito_bp.response(HTTPStatus.OK, FavoritoDeleteSchema)
     @favorito_bp.alt_response(HTTPStatus.BAD_REQUEST, schema=ErrorSchema, description="Falta el campo id_post", example={"success": False, "message": "El campo 'id_post' es obligatorio"})
     @favorito_bp.alt_response(HTTPStatus.NOT_FOUND, schema=ErrorSchema, description="Post no encontrado", example={"success": False, "message": "El post no existe"})
     def delete(self, data):
@@ -132,6 +132,5 @@ class DeleteFavoritoResource(MethodView):
         db.session.delete(favorito)
         db.session.commit()
 
-        return {"mensaje": "Post eliminado de tus favoritos"}
-
+        return {"success": True, "message": "Favorito eliminado de tus favoritos"}, HTTPStatus.OK
 

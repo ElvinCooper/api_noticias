@@ -82,7 +82,7 @@ class UserRegisterSchema(Schema):
     nombre = fields.String(required=True, validate=validate.Length(min=1, max=60))
     email = fields.Email(required=True)
     password = fields.String(required=True, validate=validate.Length(min=8, max=25), load_only=True)    
-    telefono = fields.String(validate=validate.Length(min=10, max=12))
+    telefono = fields.String(validate=validate.Length(min=10, max=12), allow_none=True)
 
 
 
@@ -96,13 +96,12 @@ class UserUpdateSchema(SQLAlchemyAutoSchema):
         sqla_session = db.session
         partial = True 
         schema_name = "UserUpdateSchema"
-        fields = ("nombre", "email", "telefono", "password")
+        fields = ("nombre", "email", "telefono")
     
     # Campos que se pueden actualizar
     nombre = auto_field(required=False, validate=validate.Length(min=1, max=60))
     email = fields.Email(required=False)
     telefono = auto_field(required=False, validate=validate.Length(max=20))
-    password = auto_field(required=False, validate=validate.Length(min=8, max=25), load_only=True)
 
 
 
@@ -131,7 +130,7 @@ class LoginResponseSchema(Schema):
     
 
 # --------------------- Schema para la respuesta del refresh token ---------------------------------------#
-class TokenRefreshResponseSchema(SQLAlchemyAutoSchema):
+class TokenRefreshResponseSchema(Schema):
     class Meta:
             model = Usuario
             load_instance = True
@@ -145,7 +144,7 @@ class TokenRefreshResponseSchema(SQLAlchemyAutoSchema):
 
 
 # --------------------- Schema para la respuesta del Logout ---------------------------------------#
-class LogoutResponseSchema(SQLAlchemyAutoSchema):
+class LogoutResponseSchema(Schema):
     class Meta:
         model = Usuario
         load_instance = True
@@ -158,7 +157,7 @@ class LogoutResponseSchema(SQLAlchemyAutoSchema):
 
 
 # --------------------- Schema para la respuesta del usuario autenticado ---------------------------------------#
-class MeResponseSchema(SQLAlchemyAutoSchema):
+class MeResponseSchema(Schema):
     class Meta:
         model = Usuario
         load_instance = True
@@ -175,7 +174,7 @@ class MeResponseSchema(SQLAlchemyAutoSchema):
 
 # --------------------- Schema para respuesta del endpoint SoloAdmin --------------------------#
 
-class AdminMeSchema(SQLAlchemyAutoSchema):
+class AdminMeSchema(Schema):
     class Meta:
         model = Usuario
         load_instance = True
