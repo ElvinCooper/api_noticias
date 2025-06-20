@@ -153,16 +153,15 @@ class PostUpdateResource(MethodView):
 
 
 
-
-
 # ------------------------ Endpoint para eliminar un Post ---------------------------- #
-from schemas.post_schema import PostUpdateSchema
+from schemas.post_schema import PostResponseSchema, PostDeleteSchema
 
 @post_bp.route("/posts/eliminar/<string:id_post>")
 class PostDeleteResource(MethodView):
     @jwt_required()
-    @post_bp.arguments(PostUpdateSchema)  
-    @post_bp.response(HTTPStatus.OK, PostSchema)  
+    @post_bp.arguments(PostResponseSchema)  
+    @post_bp.response(HTTPStatus.OK, PostResponseSchema)  
+    @post_bp.alt_response(HTTPStatus.OK, schema=PostDeleteSchema)
     def delete(self, delete_data, id_post):
       """ Eliminar un Post existente"""
       
@@ -178,7 +177,8 @@ class PostDeleteResource(MethodView):
       try:
         db.session.delete(post)
         db.session.commit()
-        return '', HTTPStatus.NO_CONTENT
+        return {"success": True, "message": "Post eliminado exitosamente"}, HTTPStatus.OK
+        #return '', HTTPStatus.NO_CONTENT
       
       except Exception as err:
          db.session.rollback()

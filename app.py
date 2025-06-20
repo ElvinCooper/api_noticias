@@ -18,7 +18,7 @@ from limiter import limiter
 
 def create_app(testing=False):
     app = Flask(__name__)
-    load_dotenv()
+    load_dotenv() 
 
     # Cargar configuración por entorno
     env = os.getenv("FLASK_ENV", "production")
@@ -31,6 +31,20 @@ def create_app(testing=False):
         app.config.from_object(ProductionConfig)
     else:
         app.config.from_object(DevelopmentConfig)
+
+
+    app.config.update({
+        'API_TITLE': 'API Noticias',
+        'API_VERSION': 'v1',
+        'OPENAPI_VERSION': '3.0.2',
+    })    
+
+    def schema_name_resolver(schema):
+        return schema.__class__.__name__
+    
+
+    api = Api(app)
+    api.spec.components.schema_name_resolver = schema_name_resolver    
 
 
     if not app.config.get('SQLALCHEMY_DATABASE_URI'):
@@ -46,21 +60,10 @@ def create_app(testing=False):
         }
     })
 
-    def schema_name_resolver(schema):
-        return schema.__class__.__name__
-
 
     init_extensions(app)
     limiter.init_app(app)
-
-    app.config.update({
-        'API_TITLE': 'API Noticias',
-        'API_VERSION': 'v1',
-        'OPENAPI_VERSION': '3.0.2',
-    })
-
-    
-    api = Api(app)
+         
     
     Migrate(app, db)
 

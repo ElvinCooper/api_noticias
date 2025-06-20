@@ -1,4 +1,4 @@
-from marshmallow import fields, validate, post_load
+from marshmallow import fields, validate, post_load, Schema
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from modelos.post_model import Post
 from extensions import db
@@ -10,7 +10,7 @@ from schemas.multimedia_schema import MultimediaSchema
 from extensions import db
 
 
-class PostSchema(SQLAlchemyAutoSchema):
+class PostSchema(Schema):
     class Meta:
         model = Post
         load_instance = True
@@ -46,11 +46,12 @@ class PostSchema(SQLAlchemyAutoSchema):
 
 
 
-class PaginationSchema(SQLAlchemyAutoSchema):
+class PaginationSchema(Schema):
     page = fields.Int(load_default=1, validate=lambda x: x >= 1)
     per_page = fields.Int(load_default=10, validate=lambda x: 1 <= x <= 100)
 
-# Schema para la respuesta paginada
+
+# ----------------- Schema para la respuesta paginada --------------------------
 class PaginatedPostsSchema(SQLAlchemyAutoSchema):
     posts = fields.Nested(PostSchema, many=True)
     total = fields.Int()
@@ -62,7 +63,7 @@ class PaginatedPostsSchema(SQLAlchemyAutoSchema):
 
 
 
-class PostUpdateSchema(SQLAlchemyAutoSchema):
+class PostUpdateSchema(Schema):
     class Meta:
         model = Post
         load_instance = True
@@ -73,3 +74,12 @@ class PostUpdateSchema(SQLAlchemyAutoSchema):
     titulo    = fields.Str(required=False)
     contenido = fields.Str(required=False)
     id_pais   = fields.Str(required=False)
+
+
+class PostDeleteSchema(Schema):
+    success = fields.Boolean(required=True)
+    message = fields.String(required=True)
+
+
+class PostResponseSchema(Schema)    :
+    id_post = fields.String(required=True)
