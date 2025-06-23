@@ -58,10 +58,7 @@ class UsuarioResource(MethodView):
             current_app.logger.info(f"Datos recibidos: {data_usuario}")
             if Usuario.query.filter_by(email=data_usuario['email']).first():
                return {"success": False, "message": "Ya existe un usuario con ese email."}, HTTPStatus.BAD_REQUEST
-            
-            
-            # if Usuario.query.filter_by(email=data_usuario['email']).first():
-            # abort(HTTPStatus.BAD_REQUEST, message="Ya existe un usuario con ese email.")
+                    
 
             # Asignar rol por defecto 
             rol_por_defecto = Rol.query.filter_by(descripcion="usuario").first()
@@ -72,10 +69,10 @@ class UsuarioResource(MethodView):
             )
             db.session.add(rol_por_defecto)
             db.session.commit()
-            current_app.logger.info("Rol 'usuario' creado automáticamente.")#abort(HTTPStatus.INTERNAL_SERVER_ERROR, message="No se encontro el predeterminado.")
+            current_app.logger.info("Rol 'usuario' creado automáticamente.")
 
             # obtener el telefono 
-            telefono = data_usuario.get('telefono')
+            telefono = data_usuario.get('telefono')                        
 
             # Crear el nuevo usuario
             nuevo_usuario = Usuario(

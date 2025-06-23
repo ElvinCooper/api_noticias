@@ -22,9 +22,9 @@ def require_api_key():
         @wraps(fn)
         def wrapper(*args, **kwargs):
             api_key = request.headers.get('X-API-KEY')
-            print("HEADERS:", dict(request.headers))
-            print("API_KEY RECIBIDA:", api_key)
-            print("VALID_KEYS:", VALID_API_KEYS)
+            # print("HEADERS:", dict(request.headers))
+            # print("API_KEY RECIBIDA:", api_key)
+            # print("VALID_KEYS:", VALID_API_KEYS)
             if not api_key or api_key not in VALID_API_KEYS:
                 return jsonify({"error": "API Key inválida o no proporcionada"}), 401
             return fn(*args, **kwargs)
