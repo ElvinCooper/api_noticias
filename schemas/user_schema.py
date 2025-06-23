@@ -1,4 +1,4 @@
-from marshmallow import fields, validate, Schema, pre_dump
+from marshmallow import fields, validate, Schema, pre_dump, pre_load
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, auto_field
 from modelos.user_model import Usuario
 from schemas.rol_schema import RolSchema
@@ -82,9 +82,13 @@ class UserRegisterSchema(Schema):
     nombre = fields.String(required=True, validate=validate.Length(min=1, max=60))
     email = fields.Email(required=True)
     password = fields.String(required=True, validate=validate.Length(min=8, max=25), load_only=True)    
-    telefono = fields.String(validate=validate.Length(min=10, max=12), allow_none=True)
-
-
+    telefono = fields.String(validate=validate.Length(max=15), allow_none=True)
+    
+    @pre_load
+    def clean_telefono(self, data, **kwargs):
+        if "telefono" in data and data["telefono"] == "":
+            data["telefono"] = None
+        return data
 
 
 # ------------------------  Schema para actualizacion ---------------------------------#    
