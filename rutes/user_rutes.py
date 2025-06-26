@@ -93,6 +93,9 @@ class UsuarioResource(MethodView):
             schema  = UserResponseSchema()
             
             return schema.dump(nuevo_usuario), HTTPStatus.CREATED
+        
+        except HTTPException as http_exc:
+            raise http_exc  # esto permite que pasen errores como 401, 400 etc...
         except Exception as e:
             current_app.logger.error(f"Error al registrar usuario: {str(e)}\n{traceback.format_exc()}")
             db.session.rollback()  # Asegurar que la sesión se revierta
