@@ -7,6 +7,7 @@ from schemas.Error_schemas import ErrorSchema
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, create_refresh_token
 from extensions import db
 from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.exceptions import HTTPException
 from http import HTTPStatus
 from marshmallow.exceptions import ValidationError
 from flask_jwt_extended import get_jwt
@@ -155,22 +156,20 @@ class LoginResource(MethodView):
     def post(self, data_login):
         """ Login de usuarios """        
         try:
+            # validar si el json trea un email y un password para validar
+            if not data_login.get("email") or not data_login.get("password"):
+                abort(HTTPStatus.BAD_REQUEST, message="Email y contraseña son requeridos")
 
-            # Buscar usuario por email
+            # Buscar usuario por email proveido
             usuario = Usuario.query.filter_by(email=data_login['email']).first()
             if not usuario:
+                current_app.logger.warning(f"Intento de login con email inexistente: {data_login['email']}")
                 abort(HTTPStatus.UNAUTHORIZED, message="Credenciales Invalidas")
+                
             
-            
-            rol_por_defecto = Rol.query.filter_by(descripcion="usuario").first()
-            if not rol_por_defecto:
-                rol_por_defecto = Rol(
-                id_rol=str(uuid.uuid4()),
-                descripcion="usuario"
-            )
-            db.session.add(rol_por_defecto)
-            db.session.commit()
-            current_app.logger.info("Rol 'usuario' creado automáticamente.")
+            if not check_password_hash(usuario.password, data_login.get("password")):
+                abort(HTTPStatus.UNAUTHORIZED, message="Credenciales Invalidas")
+                        
 
             # Generar token de autenticacion
             additional_claims = {"rol": usuario.rol.descripcion}
@@ -181,19 +180,22 @@ class LoginResource(MethodView):
                 "access_token": access_token,
                 "refresh_token": refresh_token,
                 "usuario": {
-                    "id_usuario": usuario.id_usuario,
-                    "nombre": usuario.nombre,
-                    "email": usuario.email,
-                    "rol": {"descripcion": usuario.rol.descripcion}
+                "id_usuario": usuario.id_usuario,
+                "nombre": usuario.nombre,
+                "email": usuario.email,
+                "rol": {"descripcion": usuario.rol.descripcion}
                 },
                 "message": "Login exitoso"
             }
             schema = LoginResponseSchema()
             return schema.dump(response), HTTPStatus.OK
-
+        
+        except HTTPException as http_exc:
+            raise http_exc  # esto permite que pasen errores como 401, 400 etc...
         except Exception as e:
             current_app.logger.error(f"Error en login: {str(e)}")
             return {"success": False, "message": f"Error interno: {str(e)}"}, HTTPStatus.INTERNAL_SERVER_ERROR
+
 
 #------------------ Endpoint para renovar los tokens -------------------#
     
