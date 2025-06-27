@@ -7,6 +7,8 @@ on:
   push:
     branches:
       - main  
+permissions:
+  contents: read   # esto permite que la accion setup-python pueda leer el repositorio
 
 jobs: 
   test-and-deploy:
@@ -26,16 +28,17 @@ jobs:
           --health-timeout=5s
           --health-retries=5
     env:
-      SQLALCHEMY_DATABASE_URI: postgresql://infonovax:info12345@localhost:5432/midb
+      SQLALCHEMY_DATABASE_URI: postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@postgres:5432/${{ secrets.POSTGRES_DB }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
         
       - name: Set up python
-        uses: actions/setup-python@v4  
+        uses: actions/setup-python@v5  
         with:
           python-version: '3.10'
+          cache: 'pip'
 
       - name: Install dependencies
         run: |
