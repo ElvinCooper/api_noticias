@@ -39,8 +39,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          cache: 'pip'
+          python -m pip install --upgrade pip          
           pip install -r requirements.txt    
 
       - name: Run DB migrations
@@ -61,7 +60,7 @@ jobs:
           sleep 5
               
 
-      - name: Esperar a que inicie el servidor
+      - name: Esperar a que inicie el servidor de flask
         run: |
           echo "Esperando que Flask arranque..."
           for i in {1..10}; do
