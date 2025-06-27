@@ -7,6 +7,9 @@ on:
   push:
     branches:
       - main  
+      
+permissions:
+  contents: read      
 
 jobs: 
   test-and-deploy:
@@ -33,14 +36,33 @@ jobs:
         uses: actions/checkout@v3
         
       - name: Set up python
-        uses: actions/setup-python@v4  
+        uses: actions/setup-python@v5  
         with:
           python-version: '3.10'
+          cache: 'pip'
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip          
           pip install -r requirements.txt    
+
+   
+      - name: Wait for PostgreSQL
+        run: |
+          echo "Esperando a que PostgreSQL este listo..."
+          # Intenta conectarse al puerto 5432 del servicio 'postgres'
+         
+          for i in $(seq 1 30); do
+            nc -vz localhost 5432 && break # <--- CAMBIADO 'postgres' a 'localhost'
+            echo "PostgreSQL is still unavailable - sleeping for 1 second..."
+            sleep 1
+          done
+          # Verifica si la conexión fue exitosa después de los intentos
+          if ! nc -vz localhost 5432; then # <--- CAMBIADO 'postgres' a 'localhost'
+            echo "PostgreSQL did not become ready in time. Exiting."
+            exit 1
+          fi
+          echo "PostgreSQL is up and running!"    
 
       - name: Run DB migrations
         run: flask db upgrade
