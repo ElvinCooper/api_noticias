@@ -42,6 +42,23 @@ jobs:
           python -m pip install --upgrade pip          
           pip install -r requirements.txt    
 
+
+      - name: Wait for PostgreSQL
+        run: |
+          echo "Esperando a que Postgres este listo..."         
+          for i in $(seq 1 30); do
+            nc -vz postgres 5432 && break
+            echo "PostgreSQL is still unavailable - sleeping for 1 second..."
+            sleep 1
+          done
+          # Verificar si la conexión fue exitosa después de los intentos
+          if ! nc -vz postgres 5432; then
+            echo "PostgreSQL did not become ready in time. Exiting."
+            exit 1
+          fi
+          echo "PostgreSQL is up and running!"
+          
+
       - name: Run DB migrations
         run: flask db upgrade
     
