@@ -13,13 +13,16 @@ instance/
 
 # __pycache__ y archivos temporales de Python
 __pycache__/
+modelos/__pycache__/
+rutes/__pycache__/
+schemas/__pycache__/
 *.py[cod]
 *$py.class
 
 # Archivos de log y base de datos local
 *.log
 *.sqlite3
-*.db
+*.db 
 
 # Archivos de compilación
 *.so
