@@ -21,8 +21,6 @@
   "bugs": {
     "url": "https://github.com/ElvinCooper/api_noticias/issues"
   },
-  "homepage": "https://github.com/ElvinCooper/api_noticias#readme",
-  "dependencies": {
-    "stepci": "^2.8.2"
-  }
+  "homepage": "https://github.com/ElvinCooper/api_noticias#readme"
+  
 }

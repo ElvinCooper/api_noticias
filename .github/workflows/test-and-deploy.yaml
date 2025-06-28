@@ -79,8 +79,24 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Install StepCI locally (dev dependency)
-        run: npm install stepci@2.8.2 --save-dev    
+
+      - name: Cache Node modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      # - name: Install StepCI locally (dev dependency)
+      #   run: npm install stepci@2.8.2 --save-dev    
+
+
+      - name: Install StepCI globally
+        run: npm install -g stepci@2.8.2
+
+      - name: Run StepCI tests
+        run: stepci run test-register-login.yml
 
       - name: Run Flask manually in background with log
         run: |
@@ -95,8 +111,8 @@ jobs:
             curl -s http://localhost:5000/ && break || sleep 1
           done            
 
-      - name: Run StepCI tests via NPX
-        run: npx stepci run test-register-login.yml
+      # - name: Run StepCI tests via NPX
+      #   run: npx stepci run test-register-login.yml
 
       - name: Deploy to render (si pasan los tests y la rama es main)  
         if: success() && github.ref == 'refs/heads/main'   
