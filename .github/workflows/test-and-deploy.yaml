@@ -77,6 +77,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '20'
+          cache: 'npm'
 
       - name: Install StepCI locally (dev dependency)
         run: npm install stepci@2.8.2 --save-dev    
