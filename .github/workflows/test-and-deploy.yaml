@@ -7,6 +7,9 @@ on:
   push:
     branches:
       - main  
+      
+permissions:
+  contents: read      
 
 jobs: 
   test-and-deploy:
@@ -15,9 +18,9 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_USER: infonovax
-          POSTGRES_PASSWORD: info12345
-          POSTGRES_DB: midb
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
         ports:
           - 5432:5432
         options: >-
@@ -33,14 +36,38 @@ jobs:
         uses: actions/checkout@v3
         
       - name: Set up python
-        uses: actions/setup-python@v4  
+        uses: actions/setup-python@v5  
         with:
           python-version: '3.10'
+          cache: 'pip'
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
+          python -m pip install --upgrade pip          
           pip install -r requirements.txt    
+     
+
+   
+      - name: Wait for PostgreSQL
+        run: |
+          echo "Esperando a que PostgreSQL este listo..."
+          # Intenta conectarse al puerto 5432 del servicio 'postgres'
+         
+
+          for i in $(seq 1 30); do
+            nc -vz localhost 5432 && break # <--- CAMBIADO 'postgres' a 'localhost'
+            echo "PostgreSQL is still unavailable - sleeping for 1 second..."
+            sleep 1
+          done
+
+          # Verificar si la conexión fue exitosa después de los intentos
+          if ! nc -vz localhost 5432; then # <--- CAMBIADO 'postgres' a 'localhost'
+            echo "PostgreSQL no estuvo listo a tiempo. Exiting."
+            exit 1
+          fi
+          echo "PostgreSQL is up and running!"
+
+
 
       - name: Run DB migrations
         run: flask db upgrade
@@ -50,6 +77,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '20'
+          cache: 'npm'
 
       - name: Install StepCI locally (dev dependency)
         run: npm install stepci@2.8.2 --save-dev    
@@ -60,7 +88,7 @@ jobs:
           sleep 5
               
 
-      - name: Wait for server to start
+      - name: Esperar a que inicie el servidor de flask
         run: |
           echo "Esperando que Flask arranque..."
           for i in {1..10}; do

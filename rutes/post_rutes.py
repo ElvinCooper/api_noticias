@@ -10,6 +10,7 @@ from http import HTTPStatus
 from modelos.pais_model import Pais
 from flask.views import MethodView
 from schemas.post_schema import PaginationSchema, PaginatedPostsSchema
+from werkzeug.exceptions import HTTPException
 
 
 post_bp = Blueprint('post', __name__, description='Operaciones con Post')
@@ -91,7 +92,9 @@ class PostResource(MethodView):
 
           db.session.commit()  
           return post_data
-      
+       
+      except HTTPException as http_exc:
+            raise http_exc 
       except Exception as e:
          db.session.rollback()
          smorest_abort(HTTPStatus.BAD_REQUEST, message=f"Error al crear post: {str(e)}")
