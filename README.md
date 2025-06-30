@@ -1,4 +1,4 @@
-
+[![Test and Deploy](https://github.com/ElvinCooper/api_noticias/actions/workflows/test-and-deploy.yaml/badge.svg)](https://github.com/ElvinCooper/api_noticias/actions/workflows/test-and-deploy.yaml)
 ---
 
 # 🚀 API RESTful - Gestión de Posts, Favoritos, Categorías y Multimedia
