@@ -15,7 +15,7 @@ class CategoriaSchema(SQLAlchemyAutoSchema):
     id_categoria  = fields.Str(dump_only=True)
     descripcion   = fields.Str(required=True, validate=validate.Length(max=80))
     eslogan       = fields.Str(allow_none=True)
-    id_multimedia = fields.Str(allow_none=True, load_only=True)
+    id_multimedia = fields.Str(allow_none=True)
     total_publicaciones = fields.Int(dump_only=True)
     
 

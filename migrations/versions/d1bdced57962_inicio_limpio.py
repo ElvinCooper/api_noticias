@@ -50,7 +50,7 @@ def upgrade():
         batch_op.create_index(batch_op.f('ix_token_blocklist_jti'), ['jti'], unique=True)
 
     op.create_table('categorias',
-    sa.Column('id_categoria', sa.String(), nullable=False),
+    sa.Column('id_categoria', sa.String(), nullable=True),
     sa.Column('descripcion', sa.String(length=50), nullable=False),
     sa.Column('eslogan', sa.String(length=100), nullable=True),
     sa.Column('id_multimedia', sa.String(), nullable=True),

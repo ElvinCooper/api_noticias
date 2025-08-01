@@ -52,7 +52,7 @@ class PostResource(MethodView):
 
       try:
           # validar la existencia del pais
-          pais = Pais.query.filter_by(id_pais=post_data.id_pais).first()  #validar si el codigo de pais recibido existe
+          pais = Pais.query.filter_by(id_pais=post_data['id_pais']).first()  #validar si el codigo de pais recibido existe
 
           # Obtener y validar categorías (si existen)
           categorias_ids = getattr(post_data, 'categorias', []) or []
@@ -64,7 +64,7 @@ class PostResource(MethodView):
 
 
           # Validar existencia del usuario          
-          usuario = db.session.get(Usuario, post_data.id_usuario )
+          usuario = db.session.get(Usuario, post_data['id_usuario'] )
           if not usuario:
              smorest_abort(HTTPStatus.NOT_FOUND, message="No existe un usuario con ese ID")
 
@@ -76,12 +76,23 @@ class PostResource(MethodView):
 
           # Llenar la tabla de PostCategoria
           for id_categoria in categorias_validas:
-             relacion = PostCategoria(id_post=post_data.id_post, id_categoria=id_categoria)
+             relacion = PostCategoria(id_post=post_data['id_post'], id_categoria=id_categoria)
              db.session.add(relacion)          
 
+
+         
+          nuevo_post = Post(
+                     titulo=post_data['titulo'],
+                     contenido=post_data['contenido'],
+                     id_usuario=post_data['id_usuario'],
+                     id_pais=post_data['id_pais'],
+                     visible=post_data['visible'],
+                     status=post_data['status']
+                  )
+         
           
           # Crear el Post
-          db.session.add(post_data)    
+          db.session.add(nuevo_post)    
           db.session.flush()  # para obtener el ID del post antes del commit
 
           # Insertar relaciones

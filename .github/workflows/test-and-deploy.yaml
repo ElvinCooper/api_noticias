@@ -117,19 +117,26 @@ jobs:
         run: |
           curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
 
-      - name: Notify Slack - Success
+      - name: Send Gmail Notification - Success
         if: success() && github.ref == 'refs/heads/main'
-        run: |
-          curl -X POST -H 'Content-type: application/json' \
-          --data '{"text":"✅ Los Tests pasaron y el deploy fue iniciado correctamente a Render."}' \
-          ${{ secrets.SLACK_WEBHOOK_URL }}
+        uses: dawidd6/action-send-mail@v3
+        with:
+            server_address: smtp.gmail.com
+            server_port: 465
+            secure: true
+            username: ${{ secrets.GMAIL_USERNAME }}
+            password: ${{ secrets.GMAIL_APP_PASSWORD }}
+            subject: '✅ [CI/CD] Deploy exitoso en main'
+            to: ${{ secrets.GMAIL_USERNAME }}
+            from: ${{ secrets.GMAIL_USERNAME }}
+            body: |
+              Hola Elvin 👋,
 
-      - name: Notify Slack - Failure
-        if: failure()
-        run: |
-          curl -X POST -H 'Content-type: application/json' \
-          --data '{"text":"❌ Los tests fallaron. No se hizo deploy. Revisa el workflow en GitHub Actions."}' \
-          ${{ secrets.SLACK_WEBHOOK_URL }}    
+                ✅ Los tests pasaron y el deploy fue iniciado correctamente a Render desde la rama `main`.
+
+              Revisa GitHub Actions para más detalles:
+              ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
 
 
 

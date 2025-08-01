@@ -29,8 +29,8 @@ class PostSchema(Schema):
     autor = fields.Nested(UserSchema, only=("id_usuario", "nombre", "email", "rol"), dump_only=True)  # Relación con Usuario
     pais = fields.Nested(PaisSimpleSchema, dump_only=True)  # Relación con Pais
     favoritos = fields.Nested(FavoritoSchema, many=True, dump_only=True)  # Relación uno a muchos
-    
-    multimedia = fields.Nested(MultimediaSchema, many=True, dump_only=True)  # Relación uno a muchos
+    categoria = fields.Nested(CategoriaSchema)
+    id_multimedia = fields.Nested(MultimediaSchema, many=True, dump_only=True)  # Relación uno a muchos
     status    = fields.Boolean(load_default=True) 
 
     # campo para recibir IDs de categorias desde el cliente.
