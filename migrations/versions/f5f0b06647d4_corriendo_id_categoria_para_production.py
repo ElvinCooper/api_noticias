@@ -21,7 +21,7 @@ def upgrade():
     with op.batch_alter_table('posts', schema=None) as batch_op:
         batch_op.alter_column('id_multimedia',
                existing_type=sa.VARCHAR(length=36),
-               nullable=False)
+               nullable=True)
 
     # ### end Alembic commands ###
 
