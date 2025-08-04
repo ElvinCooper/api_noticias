@@ -39,6 +39,7 @@ schemas/__pycache__/
 .DS_Store
 infovenv/
 env.py
+env-info
 
 # Entorno de node
 node_modules/
