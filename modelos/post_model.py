@@ -20,7 +20,7 @@ class Post(db.Model):
     id_categoria = db.Column(db.String(36), db.ForeignKey('categorias.id_categoria', ondelete='CASCADE'), nullable=False)
     categoria = db.relationship('Categoria', back_populates='post', lazy=True)
     favoritos   = db.relationship('Favorito', back_populates='post', cascade='all, delete-orphan', passive_deletes=True)
-    status     =  db.Column(db.Boolean, default=True)
-    id_multimedia = db.Column(db.String(36), db.ForeignKey('multimedia.id_multimedia', ondelete='CASCADE'), nullable=False)
+    #status     =  db.Column(db.Boolean, default=True)
+    #id_multimedia = db.Column(db.String(36), db.ForeignKey('multimedia.id_multimedia', ondelete='CASCADE'), nullable=False)
 
     __table_args__ = (db.Index('idx_fecha_publicacion', 'fecha_publicacion'),)
