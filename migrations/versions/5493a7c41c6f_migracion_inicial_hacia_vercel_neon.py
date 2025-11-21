@@ -1,8 +1,8 @@
-"""Migracion Inicial
+"""Migracion inicial hacia Vercel(Neon)
 
-Revision ID: 107b07e8ca30
+Revision ID: 5493a7c41c6f
 Revises: 
-Create Date: 2025-08-04 16:51:36.604284
+Create Date: 2025-11-21 09:05:58.355784
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '107b07e8ca30'
+revision = '5493a7c41c6f'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -81,10 +81,7 @@ def upgrade():
     sa.Column('fecha_publicacion', sa.DateTime(), nullable=True),
     sa.Column('visible', sa.Boolean(), nullable=True),
     sa.Column('id_categoria', sa.String(length=36), nullable=False),
-    sa.Column('status', sa.Boolean(), nullable=True),
-    sa.Column('id_multimedia', sa.String(length=36), nullable=False),
     sa.ForeignKeyConstraint(['id_categoria'], ['categorias.id_categoria'], ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['id_multimedia'], ['multimedia.id_multimedia'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['id_pais'], ['paises.id_pais'], ondelete='RESTRICT'),
     sa.ForeignKeyConstraint(['id_usuario'], ['usuarios.id_usuario'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id_post')

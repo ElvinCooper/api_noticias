@@ -63,8 +63,6 @@ def create_app(testing=False):
 
     init_extensions(app)
     limiter.init_app(app)
-         
-    
     Migrate(app, db)
 
     # Registrar blueprints
@@ -74,7 +72,7 @@ def create_app(testing=False):
     api.register_blueprint(categorias_bp, url_prefix='/api/v1')
     api.register_blueprint(pais_bp, url_prefix='/api/v1')
     api.register_blueprint(post_cat_bp, url_prefix='/api/v1')
-    api.register_blueprint(multimedia_bp, url_prefix='/api/v1')   
+    api.register_blueprint(multimedia_bp, url_prefix='/api/v1')
 
     # JWT & comandos CLI
     from auth.jwt_callbacks import jwt
@@ -82,6 +80,10 @@ def create_app(testing=False):
 
     from cli_comands import register_commands
     register_commands(app)
+
+    @app.route('/')
+    def home():
+        return {"message": "API funcionando"}, 200
 
     return app
 

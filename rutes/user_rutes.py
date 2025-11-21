@@ -44,11 +44,11 @@ class UsuarioResource(MethodView):
     def get(self):
         """ Consultar todos los usuarios """
         usuarios = Usuario.query.all()
-        return usuarios 
+        return usuarios
 
 
     @require_api_key()
-    @limiter.limit("5 per minute")  # intentos por minuto    
+    @limiter.limit("5 per minute")  # intentos por minuto
     @usuario_bp.arguments(UserRegisterSchema)
     @usuario_bp.response(HTTPStatus.CREATED, UserResponseSchema)
     @usuario_bp.alt_response(HTTPStatus.BAD_REQUEST, schema=ErrorSchema, description="Ya existe un usuario con ese email", example={"success": False, "message": "Ya existe un usuario con ese email"})
