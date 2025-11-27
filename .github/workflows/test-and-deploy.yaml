@@ -118,10 +118,10 @@ jobs:
       - name: Run StepCI tests
         run: stepci run test-register-login.yml      
 
-      - name: Deploy to render (si pasan los tests y la rama es main)  
+      - name: Deploy to vercel (si pasan los tests y la rama es main)  
         if: success() && github.ref == 'refs/heads/main'   
         run: |
-          curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
+          curl -X POST ${{ secrets.VERCEL_DEPLOY_HOOK }}
 
       - name: Send Gmail Notification - Success
         if: success() && github.ref == 'refs/heads/main'
